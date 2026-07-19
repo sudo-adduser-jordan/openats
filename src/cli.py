@@ -10,7 +10,6 @@ from typing import Any
 import dotenv
 
 from database.database import SELECT_COMPANIES_SLUG_URL, database
-from discovery import discover_and_print
 from producer import run_producers
 from services._models import ATSType
 from signals import setup_signal_handlers
@@ -290,12 +289,6 @@ def _collect_watchlist(args: argparse.Namespace):
     print(f"Fetch {outcome} — {written} jobs persisted in {duration}ms")
 
 
-def _discover(args: argparse.Namespace):
-    with database.connect() as connection:
-        total = discover_and_print(targets=args.targets,ats_hint=args.ats,db_connection=connection)
-    print(f"\nDiscovered {total} job(s) total")
-
-
 def _clean_unwatched(args: argparse.Namespace):
     with database.connect() as connection:
         database.initialize(connection)
@@ -310,14 +303,6 @@ def _clean_inactive(args: argparse.Namespace):
         removed = database.prune_inactive_companies(connection, dry_run=args.dry_run)
     label = " (dry run)" if args.dry_run else ""
     print(f"Removed {removed} inactive companies{label}.")
-
-
-def _validate_companies(args: argparse.Namespace):
-    with database.connect() as connection:
-        database.initialize(connection)
-        passed, failed, total = database.validate_company_urls(connection, max_workers=args.workers, dry_run=args.dry_run)
-    label = " (dry run)" if args.dry_run else ""
-    print(f"Company URL validation complete: {passed} passed, {failed} failed / {total} total{label}.")
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -397,11 +382,6 @@ def _build_parser() -> argparse.ArgumentParser:
     watchlist_list = watchlist_sub.add_parser("list", help="List available watchlist titles")
     watchlist_list.set_defaults(func=_watchlist_list)
 
-    discover = sub.add_parser("discover", help="Discover jobs via sitemap crawling")
-    discover.add_argument("targets", nargs="+", help="Company name(s), slug(s), or careers URL(s)")
-    discover.add_argument("--ats", help="ATS type hint (optional)")
-    discover.set_defaults(func=_discover)
-
     clean = sub.add_parser("clean", help="Clean company data")
     clean_sub = clean.add_subparsers(dest="clean_command")
 
@@ -420,19 +400,6 @@ def _build_parser() -> argparse.ArgumentParser:
         "--dry-run", action="store_true", help="Count how many would be removed without deleting"
     )
     clean_inactive.set_defaults(func=_clean_inactive)
-
-    validate = sub.add_parser("validate", help="Validate data quality")
-    validate_sub = validate.add_subparsers(dest="validate_command")
-    validate_companies = validate_sub.add_parser(
-        "companies", help="Check company URLs are reachable"
-    )
-    validate_companies.add_argument(
-        "--workers", type=int, default=20, help="Concurrent workers (default: 20)"
-    )
-    validate_companies.add_argument(
-        "--dry-run", action="store_true", help="Print findings without modifying DB"
-    )
-    validate_companies.set_defaults(func=_validate_companies)
 
     return parser
 
@@ -462,12 +429,8 @@ def main():
             _collect_all(args)
     elif args.command == "watchlist" and args.watchlist_command is None:
         parser.parse_args(["watchlist", "--help"])
-    elif args.command == "discover":
-        args.func(args)
     elif args.command == "clean" and args.clean_command is None:
         parser.parse_args(["clean", "--help"])
-    elif args.command == "validate" and args.validate_command is None:
-        parser.parse_args(["validate", "--help"])
     else:
         args.func(args)
 

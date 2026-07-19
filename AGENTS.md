@@ -26,17 +26,15 @@ openats dump watchlist-table                      # dump watchlists table → da
 openats dump watchlist [watchlist]                # dump jobs for watchlist source(s) → data/parquet/jobs_by_watchlist/{source}.parquet
 openats watchlist load <path>                     # load watch list from parquet files in directory
 openats watchlist list                            # list available watchlist titles
-openats discover <targets...> [--ats ATS]         # discover jobs via sitemap crawling
 openats clean unwatched [--dry-run]               # remove companies not in any watchlist
 openats clean inactive [--dry-run]                # remove companies with unreachable URLs (active=0)
-openats validate companies [--workers N] [--dry-run]  # check company URLs are reachable
 ```
 
 ## Project Context
 
 - Pipeline collects job listings from **47 ATS types** across **86,000+ companies** (~3.27M live jobs) into SQLite
 - Local SQLite is primary storage: `data/database.db` (from `DATABASE_PATH` env var)
-- CLI: `openats collect`, `openats dump`, `openats watchlist`, `openats discover`, `openats clean`, `openats validate`
+- CLI: `openats collect`, `openats dump`, `openats watchlist`, `openats clean`
 - Per-ATS token bucket rate limiter (10 req/s) in `producer.py` — applies to all fetchers
 
 ## Schema

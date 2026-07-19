@@ -314,13 +314,6 @@ DELETE_UNWATCHED_COMPANIES = (
 SELECT_INACTIVE_COMPANIES_COUNT = "SELECT COUNT(*) FROM companies WHERE active = 0"
 DELETE_INACTIVE_COMPANIES = "DELETE FROM companies WHERE active = 0"
 
-# --- URL validation ---
-SELECT_COMPANIES_FOR_URL_VALIDATION = (
-    "SELECT rowid, name, slug, url FROM companies WHERE url IS NOT NULL AND url != ''"
-)
-UPDATE_COMPANY_ACTIVE = "UPDATE companies SET active = 1, last_url_check = ? WHERE rowid = ?"
-UPDATE_COMPANY_INACTIVE = "UPDATE companies SET active = 0, last_url_check = ? WHERE rowid = ?"
-
 # --- Data queries ---
 SELECT_DISTINCT_COMPANIES = "SELECT DISTINCT company FROM jobs ORDER BY company"
 DELETE_COMPANIES = "DELETE FROM companies"
@@ -360,10 +353,6 @@ INSERT_COMPANIES_BATCH_TEMPLATE = (
     "INSERT OR IGNORE INTO companies ({columns}) VALUES {placeholders}"
 )
 
-# --- Cross-file queries ---
-SELECT_COMPANY_URL_BY_SLUG_OR_NAME = (
-    "SELECT url FROM companies WHERE LOWER(slug) = LOWER(?) OR LOWER(name) = LOWER(?) LIMIT 1"
-)
 SELECT_COMPANIES_SLUG_URL = "SELECT slug, url FROM companies WHERE url IS NOT NULL AND url != ''"
 
 
@@ -688,71 +677,6 @@ class Database:
             logger.error(operation="prune_inactive_companies", error=str(exc))
             raise
 
-    # --- URL validation ---
-
-    def validate_company_urls(self, connection, max_workers: int = 20, dry_run: bool = False):
-        try:
-            import concurrent.futures
-
-            import httpx
-
-            rows = connection.execute(SELECT_COMPANIES_FOR_URL_VALIDATION).fetchall()
-
-            total = len(rows)
-            passed = 0
-            failed = 0
-            def _check(row: tuple) -> tuple[bool, str | None]:
-                _rid, _name, _slug, url = row
-                try:
-                    resp = httpx.head(url, timeout=10.0, follow_redirects=True)
-                    if resp.is_success:
-                        return (True, None)
-                    return (False, f"HTTP {resp.status_code}")
-                except Exception as exc:
-                    return (False, str(exc))
-
-            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as pool:
-                fut_to_row = {pool.submit(_check, r): r for r in rows}
-                count = 0
-                for fut in concurrent.futures.as_completed(fut_to_row):
-                    row = fut_to_row[fut]
-                    ok, reason = fut.result()
-                    count += 1  # noqa: SIM113
-                    if ok:
-                        passed += 1
-                        print(f"[{count}/{total}] [OK] {row[1]} — {row[3]}")
-                        if not dry_run:
-                            connection.execute(
-                                UPDATE_COMPANY_ACTIVE,
-                                (datetime.now(UTC).isoformat(), row[0]),
-                            )
-                    else:
-                        failed += 1
-                        print(f"[{count}/{total}] [FAIL] {row[1]} — {row[3]} ({reason})")
-                        logger.error(
-                            operation="validate_company_urls_failure",
-                            company=row[1],
-                            url=row[3],
-                            reason=reason or "unknown",
-                        )
-                        if not dry_run:
-                            connection.execute(
-                                UPDATE_COMPANY_INACTIVE,
-                                (datetime.now(UTC).isoformat(), row[0]),
-                            )
-
-            logger.info(
-                operation="validate_company_urls",
-                total=total,
-                passed=passed,
-                failed=failed,
-                dry_run=dry_run,
-            )
-            return passed, failed, total
-        except Exception as exc:
-            logger.error(operation="validate_company_urls", error=str(exc))
-            raise
-
     # --- Views ---
 
     def create_view_junior_us_software(self, connection):
@@ -875,20 +799,6 @@ class Database:
             return [r[0] for r in rows if r[0]]
         except Exception as exc:
             logger.error(operation="read_distinct_companies", error=str(exc))
-            raise
-
-    def resolve_company_url(self, connection, target: str) -> str | None:
-        try:
-            rows = connection.execute(
-                SELECT_COMPANY_URL_BY_SLUG_OR_NAME, (target, target)
-            ).fetchall()
-            if rows:
-                url_val: str | None = rows[0][0]
-                if url_val:
-                    return url_val.rstrip("/")
-            return None
-        except Exception as exc:
-            logger.error(operation="resolve_company_url", target=target, error=str(exc))
             raise
 
     def read_companies_slug_url(self, connection) -> list[tuple[str, str]]:
