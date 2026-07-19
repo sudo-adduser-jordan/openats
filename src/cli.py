@@ -4,7 +4,7 @@ import os
 import threading
 import time
 from collections import defaultdict
-from queue import Queue
+from queue import Empty, Full, Queue
 from typing import Any
 
 import dotenv
@@ -85,7 +85,16 @@ def _run_collect_pipeline(
 
     run_producers(ingest_queue, companies_by_ats, shutdown_event)
 
-    ingest_queue.put(None)
+    while True:
+        try:
+            ingest_queue.put_nowait(None)
+            break
+        except Full:
+            try:
+                ingest_queue.get_nowait()
+            except Empty:
+                ingest_queue.put(None)
+                break
 
     worker.join()
 
