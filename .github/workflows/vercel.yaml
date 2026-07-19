@@ -1,0 +1,14 @@
+name: Trigger Vercel Deploy
+
+on:
+  push:
+    paths:
+      - 'data/parquet/jobs_recent.parquet'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fire Vercel Deploy Hook
+        run: |
+          curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"

@@ -355,6 +355,16 @@ INSERT_COMPANIES_BATCH_TEMPLATE = (
 
 SELECT_COMPANIES_SLUG_URL = "SELECT slug, url FROM companies WHERE url IS NOT NULL AND url != ''"
 
+# --- URL validation ---
+SELECT_JOBS_FOR_VALIDATION = (
+    "SELECT global_id, url, apply_url, title FROM jobs"
+)
+SELECT_COMPANIES_FOR_VALIDATION = (
+    "SELECT rowid, name, slug, url FROM companies WHERE url IS NOT NULL AND url != ''"
+)
+DELETE_JOBS_BATCH_TEMPLATE = "DELETE FROM jobs WHERE global_id IN ({})"
+DELETE_COMPANIES_BATCH_TEMPLATE = "DELETE FROM companies WHERE rowid IN ({})"
+
 
 class Database:
     JOBS_COLUMNS: ClassVar[list[str]] = [
@@ -675,6 +685,162 @@ class Database:
             return count
         except Exception as exc:
             logger.error(operation="prune_inactive_companies", error=str(exc))
+            raise
+
+    # --- URL validation ---
+
+    def validate_job_urls(self, connection, max_workers: int = 20, dry_run: bool = False):
+        try:
+            import concurrent.futures
+
+            import httpx
+
+            rows = connection.execute(SELECT_JOBS_FOR_VALIDATION).fetchall()
+            total = len(rows)
+            passed = 0
+            failed = 0
+            failed_ids: list[str] = []
+
+            def _check(row: tuple) -> tuple[bool, str | None]:
+                _gid, url, apply_url, title = row
+                try:
+                    resp_head = httpx.head(url, timeout=10.0, follow_redirects=True)
+                    if not resp_head.is_success:
+                        return (False, f"HEAD {resp_head.status_code}")
+
+                    resp_get = httpx.get(url, timeout=10.0, follow_redirects=True)
+                    if not resp_get.is_success:
+                        return (False, f"GET {resp_get.status_code}")
+                    if title.lower() not in resp_get.text.lower():
+                        return (False, "title not found in page body")
+
+                    if apply_url and apply_url != url:
+                        resp_apply = httpx.head(apply_url, timeout=10.0, follow_redirects=True)
+                        if not resp_apply.is_success:
+                            return (False, f"apply_url HEAD {resp_apply.status_code}")
+
+                    return (True, None)
+                except Exception as exc:
+                    return (False, str(exc))
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as pool:
+                fut_to_row = {pool.submit(_check, r): r for r in rows}
+                for count, fut in enumerate(
+                    concurrent.futures.as_completed(fut_to_row), start=1
+                ):
+                    row = fut_to_row[fut]
+                    ok, reason = fut.result()
+                    if ok:
+                        passed += 1
+                        print(f"[{count}/{total}] [OK] {row[3]} — {row[1]}")
+                    else:
+                        failed += 1
+                        failed_ids.append(row[0])
+                        print(f"[{count}/{total}] [FAIL] {row[3]} — {row[1]} ({reason})")
+                        logger.error(
+                            operation="validate_job_urls_failure",
+                            global_id=row[0],
+                            url=row[1],
+                            title=row[3],
+                            reason=reason or "unknown",
+                        )
+
+            if failed_ids and not dry_run:
+                for i in range(0, len(failed_ids), 500):
+                    batch = failed_ids[i : i + 500]
+                    placeholders = ",".join("?" for _ in batch)
+                    connection.execute(
+                        DELETE_JOBS_BATCH_TEMPLATE.format(placeholders), batch
+                    )
+                removed = len(failed_ids)
+            else:
+                removed = 0
+
+            logger.info(
+                operation="validate_job_urls",
+                total=total,
+                passed=passed,
+                failed=failed,
+                removed=removed,
+                dry_run=dry_run,
+            )
+            return passed, failed, total
+        except Exception as exc:
+            logger.error(operation="validate_job_urls", error=str(exc))
+            raise
+
+    def validate_company_urls(self, connection, max_workers: int = 20, dry_run: bool = False):
+        try:
+            import concurrent.futures
+
+            import httpx
+
+            rows = connection.execute(SELECT_COMPANIES_FOR_VALIDATION).fetchall()
+            total = len(rows)
+            passed = 0
+            failed = 0
+            failed_rowids: list[int] = []
+
+            def _check(row: tuple) -> tuple[bool, str | None]:
+                _rid, name, _slug, url = row
+                try:
+                    resp_head = httpx.head(url, timeout=10.0, follow_redirects=True)
+                    if not resp_head.is_success:
+                        return (False, f"HEAD {resp_head.status_code}")
+
+                    resp_get = httpx.get(url, timeout=10.0, follow_redirects=True)
+                    if not resp_get.is_success:
+                        return (False, f"GET {resp_get.status_code}")
+                    if name.lower() not in resp_get.text.lower():
+                        return (False, "company name not found in page body")
+
+                    return (True, None)
+                except Exception as exc:
+                    return (False, str(exc))
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as pool:
+                fut_to_row = {pool.submit(_check, r): r for r in rows}
+                for count, fut in enumerate(
+                    concurrent.futures.as_completed(fut_to_row), start=1
+                ):
+                    row = fut_to_row[fut]
+                    ok, reason = fut.result()
+                    if ok:
+                        passed += 1
+                        print(f"[{count}/{total}] [OK] {row[1]} — {row[3]}")
+                    else:
+                        failed += 1
+                        failed_rowids.append(row[0])
+                        print(f"[{count}/{total}] [FAIL] {row[1]} — {row[3]} ({reason})")
+                        logger.error(
+                            operation="validate_company_urls_failure",
+                            company=row[1],
+                            url=row[3],
+                            reason=reason or "unknown",
+                        )
+
+            if failed_rowids and not dry_run:
+                for i in range(0, len(failed_rowids), 500):
+                    batch = failed_rowids[i : i + 500]
+                    placeholders = ",".join("?" for _ in batch)
+                    connection.execute(
+                        DELETE_COMPANIES_BATCH_TEMPLATE.format(placeholders), batch
+                    )
+                removed = len(failed_rowids)
+            else:
+                removed = 0
+
+            logger.info(
+                operation="validate_company_urls",
+                total=total,
+                passed=passed,
+                failed=failed,
+                removed=removed,
+                dry_run=dry_run,
+            )
+            return passed, failed, total
+        except Exception as exc:
+            logger.error(operation="validate_company_urls", error=str(exc))
             raise
 
     # --- Views ---

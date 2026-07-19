@@ -305,6 +305,28 @@ def _clean_inactive(args: argparse.Namespace):
     print(f"Removed {removed} inactive companies{label}.")
 
 
+def _validate_jobs(args: argparse.Namespace):
+    with database.connect() as connection:
+        database.initialize(connection)
+        passed, failed, total = database.validate_job_urls(
+            connection, max_workers=args.workers, dry_run=args.dry_run
+        )
+    label = " (dry run)" if args.dry_run else ""
+    removed = 0 if args.dry_run else failed
+    print(f"Job URL validation: {passed} valid, {failed} failed, {removed} removed / {total} total{label}.")
+
+
+def _validate_companies(args: argparse.Namespace):
+    with database.connect() as connection:
+        database.initialize(connection)
+        passed, failed, total = database.validate_company_urls(
+            connection, max_workers=args.workers, dry_run=args.dry_run
+        )
+    label = " (dry run)" if args.dry_run else ""
+    removed = 0 if args.dry_run else failed
+    print(f"Company URL validation: {passed} valid, {failed} failed, {removed} removed / {total} total{label}.")
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="openats", description="openats CLI")
     sub = parser.add_subparsers(dest="command")
@@ -401,6 +423,29 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     clean_inactive.set_defaults(func=_clean_inactive)
 
+    validate = sub.add_parser("validate", help="Validate data quality")
+    validate_sub = validate.add_subparsers(dest="validate_command")
+
+    validate_jobs = validate_sub.add_parser("jobs", help="Check job URLs exist and titles match")
+    validate_jobs.add_argument(
+        "--workers", type=int, default=20, help="Concurrent workers (default: 20)"
+    )
+    validate_jobs.add_argument(
+        "--dry-run", action="store_true", help="Print findings without modifying DB"
+    )
+    validate_jobs.set_defaults(func=_validate_jobs)
+
+    validate_companies = validate_sub.add_parser(
+        "companies", help="Check company URLs exist and names match"
+    )
+    validate_companies.add_argument(
+        "--workers", type=int, default=20, help="Concurrent workers (default: 20)"
+    )
+    validate_companies.add_argument(
+        "--dry-run", action="store_true", help="Print findings without modifying DB"
+    )
+    validate_companies.set_defaults(func=_validate_companies)
+
     return parser
 
 
@@ -431,6 +476,8 @@ def main():
         parser.parse_args(["watchlist", "--help"])
     elif args.command == "clean" and args.clean_command is None:
         parser.parse_args(["clean", "--help"])
+    elif args.command == "validate" and args.validate_command is None:
+        parser.parse_args(["validate", "--help"])
     else:
         args.func(args)
 
