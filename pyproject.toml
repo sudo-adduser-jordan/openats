@@ -17,6 +17,7 @@ dependencies = [
     "python-dotenv>=1.0",
     "libsql>=0.1",
     "sqlite-web>=0.7.2",
+    "pyarrow>=15.0",
 ]
 
 [project.optional-dependencies]
@@ -48,6 +49,7 @@ dev = [
     "pytest-httpx>=0.30",
     "ruff>=0.5",
     "mypy>=1.10",
+    "pylint>=3.0",
     "pandas-stubs",
 ]
 
@@ -75,6 +77,19 @@ python_version = "3.11"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
+
+[tool.pylint]
+max-line-length = 100
+fail-under = 10
+reports = false
+disable = [
+    "C0114",   # missing-module-docstring
+    "C0115",   # missing-class-docstring
+    "C0116",   # missing-function-docstring
+    "R0903",   # too-few-public-methods
+    "C0301",   # line-too-long (ruff E501)
+    "R0801",   # duplicate-code (keep enabled but let it be discovered)
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
