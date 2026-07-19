@@ -85,8 +85,7 @@ def _run_collect_pipeline(
 
     run_producers(ingest_queue, companies_by_ats, shutdown_event)
 
-    if not shutdown_event.is_set():
-        ingest_queue.put(None)
+    ingest_queue.put(None)
 
     worker.join()
 

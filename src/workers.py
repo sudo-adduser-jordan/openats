@@ -10,7 +10,7 @@ from utils.normalize import normalize_jobs
 
 class Worker(threading.Thread):
     def __init__(self, q: Queue[Any], batch_size: int = 500) -> None:
-        super().__init__(daemon=True)
+        super().__init__()
         self.queue = q
         self.batch_size = batch_size
         self.buffer: list[Any] = []

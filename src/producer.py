@@ -2,6 +2,7 @@ import concurrent.futures
 import random
 import threading
 import time
+from queue import Full
 
 from services._base import CollectorRegistry
 from utils.logger import logger
@@ -104,7 +105,14 @@ def run_producers(ingest_queue, companies_by_ats, shutdown_event):
                 if shutdown_event.is_set():
                     break
                 if jobs:
-                    ingest_queue.put(jobs)
+                    while True:
+                        try:
+                            ingest_queue.put_nowait(jobs)
+                            break
+                        except Full:
+                            if shutdown_event.is_set():
+                                break
+                            time.sleep(0.1)
                     total_jobs += len(jobs)
 
             except Exception as exc:
