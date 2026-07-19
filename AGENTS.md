@@ -3,10 +3,11 @@
 ## Commands
 
 ```
-uv sync
+uv sync --extra dev
 ruff check src/
 mypy src/
 ruff format src/
+pylint src/
 pytest
 ```
 
