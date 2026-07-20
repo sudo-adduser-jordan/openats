@@ -311,13 +311,13 @@ def _validate_jobs(args: argparse.Namespace):
 def _validate_companies(args: argparse.Namespace):
     with database.connect() as connection:
         database.initialize(connection)
-        passed, failed, total = database.validate_company_urls(
+        passed, failed, skipped, total = database.validate_company_urls(
             connection, max_workers=args.workers, dry_run=args.dry_run
         )
     label = " (dry run)" if args.dry_run else ""
     removed = 0 if args.dry_run else failed
     print(
-        f"Company URL validation: {passed} valid, {failed} failed, {removed} removed / {total} total{label}."
+        f"Company URL validation: {passed} valid, {failed} failed, {skipped} skipped, {removed} removed / {total} total{label}."
     )
 
 

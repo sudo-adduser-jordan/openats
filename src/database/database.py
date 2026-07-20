@@ -743,34 +743,41 @@ class Database:
             total = len(rows)
             passed = 0
             failed = 0
+            skipped = 0
             failed_rowids: list[int] = []
 
-            def _check(row: tuple) -> tuple[bool, str | None]:
+            def _check(row: tuple) -> tuple[str, str | None]:
                 _rid, name, _slug, url = row
                 try:
                     resp_head = httpx.head(url, timeout=10.0, follow_redirects=True)
                     if not resp_head.is_success:
-                        return (False, f"HEAD {resp_head.status_code}")
+                        return ("skip", f"HEAD {resp_head.status_code}")
 
                     resp_get = httpx.get(url, timeout=10.0, follow_redirects=True)
                     if not resp_get.is_success:
-                        return (False, f"GET {resp_get.status_code}")
+                        return ("skip", f"GET {resp_get.status_code}")
                     if name.lower() not in resp_get.text.lower():
-                        return (False, "company name not found in page body")
+                        return ("delete", "company name not found in page body")
 
-                    return (True, None)
+                    return ("ok", None)
+                except httpx.TimeoutException as exc:
+                    return ("skip", f"timeout: {exc}")
+                except httpx.NetworkError as exc:
+                    return ("skip", f"network error: {exc}")
+                except httpx.HTTPError as exc:
+                    return ("skip", f"HTTP error: {exc}")
                 except Exception as exc:
-                    return (False, str(exc))
+                    return ("skip", str(exc))
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as pool:
                 fut_to_row = {pool.submit(_check, r): r for r in rows}
                 for count, fut in enumerate(concurrent.futures.as_completed(fut_to_row), start=1):
                     row = fut_to_row[fut]
-                    ok, reason = fut.result()
-                    if ok:
+                    status, reason = fut.result()
+                    if status == "ok":
                         passed += 1
                         print(f"[{count}/{total}] [OK] {row[1]} — {row[3]}")
-                    else:
+                    elif status == "delete":
                         failed += 1
                         failed_rowids.append(row[0])
                         print(f"[{count}/{total}] [FAIL] {row[1]} — {row[3]} ({reason})")
@@ -780,10 +787,13 @@ class Database:
                             url=row[3],
                             reason=reason or "unknown",
                         )
+                    else:
+                        skipped += 1
+                        print(f"[{count}/{total}] [SKIP] {row[1]} — {row[3]} ({reason})")
 
             if failed_rowids and not dry_run:
-                for i in range(0, len(failed_rowids), 500):
-                    batch = failed_rowids[i : i + 500]
+                for i in range(0, len(failed_rowids), 100):
+                    batch = failed_rowids[i : i + 100]
                     placeholders = ",".join("?" for _ in batch)
                     connection.execute(DELETE_COMPANIES_BATCH_TEMPLATE.format(placeholders), batch)
                 removed = len(failed_rowids)
@@ -795,10 +805,11 @@ class Database:
                 total=total,
                 passed=passed,
                 failed=failed,
+                skipped=skipped,
                 removed=removed,
                 dry_run=dry_run,
             )
-            return passed, failed, total
+            return passed, failed, skipped, total
         except Exception as exc:
             logger.error(operation="validate_company_urls", error=str(exc))
             raise
