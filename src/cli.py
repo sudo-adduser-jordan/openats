@@ -310,7 +310,7 @@ def _validate_jobs(args: argparse.Namespace):
 
 def _validate_companies(args: argparse.Namespace):
     with database.connect() as connection:
-        database.initialize(connection)
+        database.create_table_companies(connection)
         passed, failed, skipped, total = database.validate_company_urls(
             connection, max_workers=args.workers, dry_run=args.dry_run
         )

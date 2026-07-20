@@ -792,10 +792,8 @@ class Database:
                         print(f"[{count}/{total}] [SKIP] {row[1]} — {row[3]} ({reason})")
 
             if failed_rowids and not dry_run:
-                for i in range(0, len(failed_rowids), 100):
-                    batch = failed_rowids[i : i + 100]
-                    placeholders = ",".join("?" for _ in batch)
-                    connection.execute(DELETE_COMPANIES_BATCH_TEMPLATE.format(placeholders), batch)
+                placeholders = ",".join("?" for _ in failed_rowids)
+                connection.execute(DELETE_COMPANIES_BATCH_TEMPLATE.format(placeholders), failed_rowids)
                 removed = len(failed_rowids)
             else:
                 removed = 0
