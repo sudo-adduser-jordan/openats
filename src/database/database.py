@@ -76,9 +76,6 @@ CREATE_INDEX_JOBS_COMPANY_POSTED_AT = (
     'CREATE INDEX IF NOT EXISTS idx_jobs_company_posted_at ON "jobs"(company, posted_at)'
 )
 CREATE_INDEX_COMPANIES_URL = "CREATE INDEX IF NOT EXISTS idx_companies_url ON companies(url)"
-CREATE_INDEX_COMPANIES_ACTIVE = (
-    "CREATE INDEX IF NOT EXISTS idx_companies_active ON companies(active)"
-)
 
 NOT_SENIOR_MANAGER = """
     AND "title" NOT LIKE '%senior%'
@@ -308,18 +305,15 @@ SELECT_UNWATCHED_COMPANIES_COUNT = (
     ")"
 )
 DELETE_UNWATCHED_COMPANIES = (
-    "DELETE FROM companies WHERE (ats, slug) NOT IN "
-    "(SELECT ats, company_slug FROM watchlists)"
+    "DELETE FROM companies WHERE (ats, slug) NOT IN (SELECT ats, company_slug FROM watchlists)"
 )
-SELECT_INACTIVE_COMPANIES_COUNT = "SELECT COUNT(*) FROM companies WHERE active = 0"
-DELETE_INACTIVE_COMPANIES = "DELETE FROM companies WHERE active = 0"
+
 
 # --- Data queries ---
 SELECT_DISTINCT_COMPANIES = "SELECT DISTINCT company FROM jobs ORDER BY company"
 DELETE_COMPANIES = "DELETE FROM companies"
 INSERT_ATS_FROM_COMPANIES = (
-    "INSERT INTO ats (ats, name, slug) "
-    "SELECT DISTINCT ats, ats, ats FROM companies ORDER BY ats"
+    "INSERT INTO ats (ats, name, slug) SELECT DISTINCT ats, ats, ats FROM companies ORDER BY ats"
 )
 SELECT_DISTINCT_ATS_TYPES = 'SELECT DISTINCT ats_type FROM "jobs" ORDER BY ats_type'
 
@@ -356,9 +350,7 @@ INSERT_COMPANIES_BATCH_TEMPLATE = (
 SELECT_COMPANIES_SLUG_URL = "SELECT slug, url FROM companies WHERE url IS NOT NULL AND url != ''"
 
 # --- URL validation ---
-SELECT_JOBS_FOR_VALIDATION = (
-    "SELECT global_id, url, apply_url, title FROM jobs"
-)
+SELECT_JOBS_FOR_VALIDATION = "SELECT global_id, url, apply_url, title FROM jobs"
 SELECT_COMPANIES_FOR_VALIDATION = (
     "SELECT rowid, name, slug, url FROM companies WHERE url IS NOT NULL AND url != ''"
 )
@@ -434,7 +426,7 @@ class Database:
         self.create_index_companies_slug(connection)
         self.create_index_companies_name(connection)
         self.create_index_companies_url(connection)
-        self.create_index_companies_active(connection)
+
         self.create_index_jobs_company(connection)
         self.create_index_jobs_ats_type(connection)
         self.create_index_jobs_posted_at(connection)
@@ -635,13 +627,6 @@ class Database:
             logger.error(operation="create_index_companies_url", error=str(exc))
             raise
 
-    def create_index_companies_active(self, connection):
-        try:
-            connection.execute(CREATE_INDEX_COMPANIES_ACTIVE)
-        except Exception as exc:
-            logger.error(operation="create_index_companies_active", error=str(exc))
-            raise
-
     # --- Watchlist-based pruning ---
 
     def prune_unwatched_companies(self, connection, dry_run: bool = False) -> int:
@@ -668,23 +653,6 @@ class Database:
             return count
         except Exception as exc:
             logger.error(operation="prune_unwatched_companies", error=str(exc))
-            raise
-
-    def prune_inactive_companies(self, connection, dry_run: bool = False) -> int:
-        try:
-            count = connection.execute(SELECT_INACTIVE_COMPANIES_COUNT).fetchone()[0]
-
-            if count and not dry_run:
-                connection.execute(DELETE_INACTIVE_COMPANIES)
-
-            logger.info(
-                operation="prune_inactive_companies",
-                removed=count,
-                dry_run=dry_run,
-            )
-            return count
-        except Exception as exc:
-            logger.error(operation="prune_inactive_companies", error=str(exc))
             raise
 
     # --- URL validation ---
@@ -725,9 +693,7 @@ class Database:
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as pool:
                 fut_to_row = {pool.submit(_check, r): r for r in rows}
-                for count, fut in enumerate(
-                    concurrent.futures.as_completed(fut_to_row), start=1
-                ):
+                for count, fut in enumerate(concurrent.futures.as_completed(fut_to_row), start=1):
                     row = fut_to_row[fut]
                     ok, reason = fut.result()
                     if ok:
@@ -749,9 +715,7 @@ class Database:
                 for i in range(0, len(failed_ids), 500):
                     batch = failed_ids[i : i + 500]
                     placeholders = ",".join("?" for _ in batch)
-                    connection.execute(
-                        DELETE_JOBS_BATCH_TEMPLATE.format(placeholders), batch
-                    )
+                    connection.execute(DELETE_JOBS_BATCH_TEMPLATE.format(placeholders), batch)
                 removed = len(failed_ids)
             else:
                 removed = 0
@@ -800,9 +764,7 @@ class Database:
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as pool:
                 fut_to_row = {pool.submit(_check, r): r for r in rows}
-                for count, fut in enumerate(
-                    concurrent.futures.as_completed(fut_to_row), start=1
-                ):
+                for count, fut in enumerate(concurrent.futures.as_completed(fut_to_row), start=1):
                     row = fut_to_row[fut]
                     ok, reason = fut.result()
                     if ok:
@@ -823,9 +785,7 @@ class Database:
                 for i in range(0, len(failed_rowids), 500):
                     batch = failed_rowids[i : i + 500]
                     placeholders = ",".join("?" for _ in batch)
-                    connection.execute(
-                        DELETE_COMPANIES_BATCH_TEMPLATE.format(placeholders), batch
-                    )
+                    connection.execute(DELETE_COMPANIES_BATCH_TEMPLATE.format(placeholders), batch)
                 removed = len(failed_rowids)
             else:
                 removed = 0
@@ -940,7 +900,9 @@ class Database:
                 )
                 flat = [row.get(c) for row in batch for c in cols]
                 connection.execute(
-                    INSERT_JOBS_TEMPLATE.format(table=JOBS_TABLE, columns=col_names, placeholders=placeholders),
+                    INSERT_JOBS_TEMPLATE.format(
+                        table=JOBS_TABLE, columns=col_names, placeholders=placeholders
+                    ),
                     flat,
                 )
         except Exception as exc:

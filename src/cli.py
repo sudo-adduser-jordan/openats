@@ -243,9 +243,7 @@ def _collect_watchlist(args: argparse.Namespace):
         else:
             entries = database.read_watchlists(connection)
 
-        companies_urls = dict(
-            connection.execute(SELECT_COMPANIES_SLUG_URL).fetchall()
-        )
+        companies_urls = dict(connection.execute(SELECT_COMPANIES_SLUG_URL).fetchall())
 
     if not entries:
         print("Watch list is empty — nothing to fetch")
@@ -289,20 +287,12 @@ def _collect_watchlist(args: argparse.Namespace):
     print(f"Fetch {outcome} — {written} jobs persisted in {duration}ms")
 
 
-def _clean_unwatched(args: argparse.Namespace):
+def _remove_unwatched(args: argparse.Namespace):
     with database.connect() as connection:
         database.initialize(connection)
         removed = database.prune_unwatched_companies(connection, dry_run=args.dry_run)
     label = " (dry run)" if args.dry_run else ""
     print(f"Removed {removed} unwatched companies{label}.")
-
-
-def _clean_inactive(args: argparse.Namespace):
-    with database.connect() as connection:
-        database.initialize(connection)
-        removed = database.prune_inactive_companies(connection, dry_run=args.dry_run)
-    label = " (dry run)" if args.dry_run else ""
-    print(f"Removed {removed} inactive companies{label}.")
 
 
 def _validate_jobs(args: argparse.Namespace):
@@ -313,7 +303,9 @@ def _validate_jobs(args: argparse.Namespace):
         )
     label = " (dry run)" if args.dry_run else ""
     removed = 0 if args.dry_run else failed
-    print(f"Job URL validation: {passed} valid, {failed} failed, {removed} removed / {total} total{label}.")
+    print(
+        f"Job URL validation: {passed} valid, {failed} failed, {removed} removed / {total} total{label}."
+    )
 
 
 def _validate_companies(args: argparse.Namespace):
@@ -324,7 +316,9 @@ def _validate_companies(args: argparse.Namespace):
         )
     label = " (dry run)" if args.dry_run else ""
     removed = 0 if args.dry_run else failed
-    print(f"Company URL validation: {passed} valid, {failed} failed, {removed} removed / {total} total{label}.")
+    print(
+        f"Company URL validation: {passed} valid, {failed} failed, {removed} removed / {total} total{label}."
+    )
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -404,24 +398,16 @@ def _build_parser() -> argparse.ArgumentParser:
     watchlist_list = watchlist_sub.add_parser("list", help="List available watchlist titles")
     watchlist_list.set_defaults(func=_watchlist_list)
 
-    clean = sub.add_parser("clean", help="Clean company data")
-    clean_sub = clean.add_subparsers(dest="clean_command")
+    remove = sub.add_parser("remove", help="Remove company data")
+    remove_sub = remove.add_subparsers(dest="remove_command")
 
-    clean_unwatched = clean_sub.add_parser(
+    remove_unwatched = remove_sub.add_parser(
         "unwatched", help="Remove companies not in any watchlist"
     )
-    clean_unwatched.add_argument(
+    remove_unwatched.add_argument(
         "--dry-run", action="store_true", help="Count how many would be removed without deleting"
     )
-    clean_unwatched.set_defaults(func=_clean_unwatched)
-
-    clean_inactive = clean_sub.add_parser(
-        "inactive", help="Remove companies with unreachable URLs (active=0)"
-    )
-    clean_inactive.add_argument(
-        "--dry-run", action="store_true", help="Count how many would be removed without deleting"
-    )
-    clean_inactive.set_defaults(func=_clean_inactive)
+    remove_unwatched.set_defaults(func=_remove_unwatched)
 
     validate = sub.add_parser("validate", help="Validate data quality")
     validate_sub = validate.add_subparsers(dest="validate_command")
@@ -452,7 +438,7 @@ def _build_parser() -> argparse.ArgumentParser:
 def main():
     parser = _build_parser()
     args = parser.parse_args()
-    
+
     if args.command is None:
         from app import main as pipeline_main
 
@@ -474,8 +460,8 @@ def main():
             _collect_all(args)
     elif args.command == "watchlist" and args.watchlist_command is None:
         parser.parse_args(["watchlist", "--help"])
-    elif args.command == "clean" and args.clean_command is None:
-        parser.parse_args(["clean", "--help"])
+    elif args.command == "remove" and args.remove_command is None:
+        parser.parse_args(["remove", "--help"])
     elif args.command == "validate" and args.validate_command is None:
         parser.parse_args(["validate", "--help"])
     else:
