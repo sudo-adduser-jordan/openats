@@ -351,11 +351,8 @@ SELECT_COMPANIES_SLUG_URL = "SELECT slug, url FROM companies WHERE url IS NOT NU
 
 # --- URL validation ---
 SELECT_JOBS_FOR_VALIDATION = "SELECT global_id, url, apply_url, title FROM jobs"
-SELECT_COMPANIES_FOR_VALIDATION = (
-    "SELECT rowid, name, slug, url FROM companies WHERE url IS NOT NULL AND url != '' ORDER BY RANDOM()"
-)
+SELECT_COMPANIES_FOR_VALIDATION = "SELECT rowid, name, slug, url FROM companies WHERE url IS NOT NULL AND url != '' ORDER BY RANDOM()"
 DELETE_JOBS_BATCH_TEMPLATE = "DELETE FROM jobs WHERE global_id IN ({})"
-DELETE_COMPANIES_BATCH_TEMPLATE = "DELETE FROM companies WHERE rowid IN ({})"
 
 
 class Database:
@@ -744,7 +741,6 @@ class Database:
             passed = 0
             failed = 0
             skipped = 0
-            failed_rowids: list[int] = []
 
             def _check(row: tuple) -> tuple[str, str | None]:
                 _rid, name, _slug, url = row
@@ -777,9 +773,10 @@ class Database:
                     if status == "ok":
                         passed += 1
                         print(f"[{count}/{total}] [OK] {row[1]} — {row[3]}")
-                    elif status == "delete":
+                    elif status == "delete" and not dry_run:
                         failed += 1
-                        failed_rowids.append(row[0])
+                        connection.execute("DELETE FROM companies WHERE rowid = ?", (row[0],))
+                        connection.commit()
                         print(f"[{count}/{total}] [FAIL] {row[1]} — {row[3]} ({reason})")
                         logger.error(
                             operation="validate_company_urls_failure",
@@ -791,12 +788,7 @@ class Database:
                         skipped += 1
                         print(f"[{count}/{total}] [SKIP] {row[1]} — {row[3]} ({reason})")
 
-            if failed_rowids and not dry_run:
-                placeholders = ",".join("?" for _ in failed_rowids)
-                connection.execute(DELETE_COMPANIES_BATCH_TEMPLATE.format(placeholders), failed_rowids)
-                removed = len(failed_rowids)
-            else:
-                removed = 0
+            removed = failed
 
             logger.info(
                 operation="validate_company_urls",
