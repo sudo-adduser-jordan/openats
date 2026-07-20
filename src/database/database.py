@@ -352,7 +352,7 @@ SELECT_COMPANIES_SLUG_URL = "SELECT slug, url FROM companies WHERE url IS NOT NU
 # --- URL validation ---
 SELECT_JOBS_FOR_VALIDATION = "SELECT global_id, url, apply_url, title FROM jobs"
 SELECT_COMPANIES_FOR_VALIDATION = (
-    "SELECT rowid, name, slug, url FROM companies WHERE url IS NOT NULL AND url != ''"
+    "SELECT rowid, name, slug, url FROM companies WHERE url IS NOT NULL AND url != '' ORDER BY RANDOM()"
 )
 DELETE_JOBS_BATCH_TEMPLATE = "DELETE FROM jobs WHERE global_id IN ({})"
 DELETE_COMPANIES_BATCH_TEMPLATE = "DELETE FROM companies WHERE rowid IN ({})"
