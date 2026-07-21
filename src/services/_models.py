@@ -92,6 +92,13 @@ class ATSType(StrEnum):
     CUSTOM = "custom"
 
 
+DISABLED_ATS: frozenset[ATSType] = frozenset(
+    {
+        ATSType.JOIN_COM,
+    }
+)
+
+
 SalaryPeriod = Literal["HOUR", "DAY", "WEEK", "MONTH", "YEAR"]
 
 

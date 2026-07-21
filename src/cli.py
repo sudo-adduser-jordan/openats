@@ -11,7 +11,7 @@ import dotenv
 
 from database.database import SELECT_COMPANIES_SLUG_URL, database
 from producer import run_producers
-from services._models import ATSType
+from services._models import DISABLED_ATS, ATSType
 from signals import setup_signal_handlers
 from workers import Worker
 
@@ -67,7 +67,8 @@ def _dump_watchlist(args: argparse.Namespace):
 
 def _get_all_companies() -> dict[ATSType, list[dict[str, str]]]:
     with database.connect() as connection:
-        return database.read_companies_ats(connection)
+        companies = database.read_companies_ats(connection)
+    return {k: v for k, v in companies.items() if k not in DISABLED_ATS}
 
 
 def _run_collect_pipeline(

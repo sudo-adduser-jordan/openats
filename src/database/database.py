@@ -747,10 +747,14 @@ class Database:
                 try:
                     resp_head = httpx.head(url, timeout=10.0, follow_redirects=True)
                     if not resp_head.is_success:
+                        if resp_head.status_code in (404, 410):
+                            return ("delete", f"HEAD {resp_head.status_code}")
                         return ("skip", f"HEAD {resp_head.status_code}")
 
                     resp_get = httpx.get(url, timeout=10.0, follow_redirects=True)
                     if not resp_get.is_success:
+                        if resp_get.status_code in (404, 410):
+                            return ("delete", f"GET {resp_get.status_code}")
                         return ("skip", f"GET {resp_get.status_code}")
                     if name.lower() not in resp_get.text.lower():
                         return ("delete", "company name not found in page body")
