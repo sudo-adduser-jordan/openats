@@ -253,7 +253,7 @@ CREATE TABLE IF NOT EXISTS jobs_recent (
 CREATE_TRIGGER_JOBS_INSERT_RECENT = """
 CREATE TRIGGER IF NOT EXISTS trg_jobs_after_insert
 AFTER INSERT ON jobs
-WHEN NEW.posted_at IS NOT NULL AND NEW.posted_at >= datetime('now', '-24 hours')
+WHEN NEW.posted_at IS NOT NULL AND NEW.posted_at >= replace(datetime('now', '-24 hours'), ' ', 'T')
 BEGIN
     INSERT OR IGNORE INTO jobs_recent VALUES (
         NEW.global_id, NEW.url, NEW.title, NEW.company, NEW.ats_type,
@@ -273,7 +273,7 @@ AFTER UPDATE ON jobs
 BEGIN
     DELETE FROM jobs_recent
     WHERE global_id = NEW.global_id
-      AND (NEW.posted_at IS NULL OR NEW.posted_at < datetime('now', '-24 hours'));
+      AND (NEW.posted_at IS NULL OR NEW.posted_at < replace(datetime('now', '-24 hours'), ' ', 'T'));
 
     INSERT OR REPLACE INTO jobs_recent
     SELECT NEW.global_id, NEW.url, NEW.title, NEW.company, NEW.ats_type,
@@ -283,7 +283,7 @@ BEGIN
            NEW.employment_type, NEW.department, NEW.team, NEW.requisition_id,
            NEW.apply_url, NEW.commitment, NEW.description, NEW.posted_at,
            NEW.fetched_at, NEW.language, NEW.raw
-    WHERE NEW.posted_at IS NOT NULL AND NEW.posted_at >= datetime('now', '-24 hours');
+    WHERE NEW.posted_at IS NOT NULL AND NEW.posted_at >= replace(datetime('now', '-24 hours'), ' ', 'T');
 END;
 """
 
@@ -294,6 +294,11 @@ BEGIN
     DELETE FROM jobs_recent WHERE global_id = OLD.global_id;
 END;
 """
+
+# --- Jobs-recent pruning ---
+DELETE_JOBS_RECENT_STALE = (
+    "DELETE FROM jobs_recent WHERE posted_at < replace(datetime('now', '-24 hours'), ' ', 'T')"
+)
 
 # --- Pruning ---
 SELECT_WATCHLISTS_COUNT = "SELECT COUNT(*) FROM watchlists"
@@ -418,6 +423,7 @@ class Database:
         self.create_table_jobs(connection)
         self.create_table_jobs_recent(connection)
         self.create_triggers_jobs_recent(connection)
+        self.prune_jobs_recent(connection)
         self.create_table_watchlists(connection)
         self.create_index_companies_ats(connection)
         self.create_index_companies_slug(connection)
@@ -490,6 +496,9 @@ class Database:
 
     def create_triggers_jobs_recent(self, connection):
         try:
+            connection.execute("DROP TRIGGER IF EXISTS trg_jobs_after_insert")
+            connection.execute("DROP TRIGGER IF EXISTS trg_jobs_after_update")
+            connection.execute("DROP TRIGGER IF EXISTS trg_jobs_after_delete")
             connection.execute(CREATE_TRIGGER_JOBS_INSERT_RECENT)
             connection.execute(CREATE_TRIGGER_JOBS_UPDATE_RECENT)
             connection.execute(CREATE_TRIGGER_JOBS_DELETE_RECENT)
@@ -559,6 +568,13 @@ class Database:
             connection.execute(CREATE_INDEX_JOBS_RECENT_POSTED_AT)
         except Exception as exc:
             logger.error(operation="create_index_jobs_recent_posted_at", error=str(exc))
+            raise
+
+    def prune_jobs_recent(self, connection):
+        try:
+            connection.execute(DELETE_JOBS_RECENT_STALE)
+        except Exception as exc:
+            logger.error(operation="prune_jobs_recent", error=str(exc))
             raise
 
     def create_index_watchlists_watchlist(self, connection):
@@ -1006,14 +1022,12 @@ class Database:
             logger.error(operation="read_jobs_since_iter", hours=hours, error=str(exc))
             raise
 
-    def read_jobs_recent_iter(self, connection, hours: int = 24, batch_size: int = 10000):
+    def read_jobs_recent_iter(self, connection, batch_size: int = 10000):
         try:
             cols = self.JOBS_COLUMNS
             col_names = ",".join(f'"{c}"' for c in cols)
-            cutoff = (datetime.now(UTC) - timedelta(hours=hours)).isoformat()
             cursor = connection.execute(
-                SELECT_JOBS_SINCE_TEMPLATE.format(columns=col_names, table=JOBS_RECENT_TABLE),
-                (cutoff,),
+                f'SELECT {col_names} FROM "{JOBS_RECENT_TABLE}"',
             )
             while True:
                 rows = cursor.fetchmany(batch_size)
@@ -1021,7 +1035,7 @@ class Database:
                     break
                 yield [dict(zip(cols, row, strict=True)) for row in rows]
         except Exception as exc:
-            logger.error(operation="read_jobs_recent_iter", hours=hours, error=str(exc))
+            logger.error(operation="read_jobs_recent_iter", error=str(exc))
             raise
 
     def read_companies_ats(self, connection):
@@ -1432,10 +1446,11 @@ class Database:
     def dump_jobs_recent(self, connection, hours: int = 24) -> None:
         from database.parquet import ParquetBufferWriter
 
+        self.prune_jobs_recent(connection)
         path = "data/parquet/jobs_recent.parquet"
         with ParquetBufferWriter(path) as writer:
             total = 0
-            for batch in self.read_jobs_recent_iter(connection, hours):
+            for batch in self.read_jobs_recent_iter(connection):
                 writer.write_rows(batch)
                 total += len(batch)
             if total == 0:
