@@ -95,6 +95,7 @@ class ATSType(StrEnum):
 DISABLED_ATS: frozenset[ATSType] = frozenset(
     {
         ATSType.JOIN_COM,
+        ATSType.EURES,
     }
 )
 
