@@ -657,10 +657,12 @@ class Database:
     def validate_job_urls(self, connection, max_workers: int = 20, dry_run: bool = False):
         try:
             import concurrent.futures
+            import random
 
             import httpx
 
             rows = connection.execute(SELECT_JOBS_FOR_VALIDATION).fetchall()
+            random.shuffle(rows)
             total = len(rows)
             passed = 0
             failed = 0
@@ -733,10 +735,12 @@ class Database:
     def validate_company_urls(self, connection, max_workers: int = 20, dry_run: bool = False):
         try:
             import concurrent.futures
+            import random
 
             import httpx
 
             rows = connection.execute(SELECT_COMPANIES_FOR_VALIDATION).fetchall()
+            random.shuffle(rows)
             total = len(rows)
             passed = 0
             failed = 0
