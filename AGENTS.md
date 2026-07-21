@@ -13,6 +13,7 @@ pytest
 
 ```
 uv run openats                                    # runs full pipeline (collect all companies)
+openats database                                  # create/reinitialize database schema + seed from parquet
 openats collect [--skip ...]                      # collect all, optionally skipping ATS type(s)
 openats collect company [companies...]            # collect jobs for specific company name(s) or slug(s)
 openats collect ats [ats...] [--skip ...]         # collect jobs for all companies on given ATS type(s)
@@ -35,7 +36,7 @@ openats validate companies [--workers N] [--dry-run]  # check company URLs exist
 
 - Pipeline collects job listings from **47 ATS types** across **86,000+ companies** (~3.27M live jobs) into SQLite
 - Local SQLite is primary storage: `data/database.db` (from `DATABASE_PATH` env var)
-- CLI: `openats collect`, `openats dump`, `openats watchlist`, `openats remove`, `openats validate`
+- CLI: `openats database`, `openats collect`, `openats dump`, `openats watchlist`, `openats remove`, `openats validate`
 - Per-ATS token bucket rate limiter (10 req/s) in `producer.py` — applies to all fetchers
 
 ## Schema
