@@ -67,7 +67,6 @@ def _dump_watchlist(args: argparse.Namespace):
 
 def _get_all_companies() -> dict[ATSType, list[dict[str, str]]]:
     with database.connect() as connection:
-        database.initialize(connection)
         return database.read_companies_ats(connection)
 
 
@@ -234,7 +233,6 @@ def _watchlist_list(args: argparse.Namespace):
 
 def _collect_watchlist(args: argparse.Namespace):
     with database.connect() as connection:
-        database.initialize(connection)
         if args.watchlist:
             entries = database.read_watchlists_by_source(connection, args.watchlist)
             if not entries:
@@ -289,10 +287,15 @@ def _collect_watchlist(args: argparse.Namespace):
 
 def _remove_unwatched(args: argparse.Namespace):
     with database.connect() as connection:
-        database.initialize(connection)
         removed = database.prune_unwatched_companies(connection, dry_run=args.dry_run)
     label = " (dry run)" if args.dry_run else ""
     print(f"Removed {removed} unwatched companies{label}.")
+
+
+def _database(args: argparse.Namespace):
+    with database.connect() as connection:
+        database.initialize(connection)
+    print("Database created")
 
 
 def _validate_jobs(args: argparse.Namespace):
@@ -430,6 +433,9 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     validate_companies.set_defaults(func=_validate_companies)
 
+    database_cmd = sub.add_parser("database", help="Create or reinitialize the database")
+    database_cmd.set_defaults(func=_database)
+
     return parser
 
 
@@ -462,6 +468,8 @@ def main():
         parser.parse_args(["remove", "--help"])
     elif args.command == "validate" and args.validate_command is None:
         parser.parse_args(["validate", "--help"])
+    elif args.command == "database":
+        args.func(args)
     else:
         args.func(args)
 

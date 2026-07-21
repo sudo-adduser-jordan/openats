@@ -9,7 +9,6 @@ dotenv.load_dotenv()
 
 def main() -> None:
     with database.connect() as connection:
-        database.initialize(connection)
         companies_by_ats = database.read_companies_ats(connection)
         unknown_ats = database.read_companies_no_ats(connection)
 
