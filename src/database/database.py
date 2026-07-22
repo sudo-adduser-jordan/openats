@@ -516,13 +516,7 @@ class Database:
         self.create_view_us_devops_24h(connection)
         self.create_index_ats_unique(connection)
         self.create_index_companies_unique(connection)
-        self.load_companies_from_parquet(connection)
-        self.build_ats_from_companies(connection)
-        self.load_watchlists_dir(connection, "data/parquet/watchlist")
-        logger.info(
-            operation="database_initialize_done",
-            companies_seeded=self.company_count(connection),
-        )
+        logger.info(operation="database_initialize_done")
 
     # --- Schema ---
 

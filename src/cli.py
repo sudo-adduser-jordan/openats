@@ -299,6 +299,14 @@ def _database(args: argparse.Namespace):
     print("Database created")
 
 
+def _load_database(args: argparse.Namespace):
+    with database.connect() as connection:
+        database.load_companies_from_parquet(connection)
+        database.build_ats_from_companies(connection)
+        database.load_watchlists_dir(connection, "data/parquet/watchlist")
+    print("Database loaded")
+
+
 def _validate_jobs(args: argparse.Namespace):
     with database.connect() as connection:
         passed, failed, total = database.validate_job_urls(
@@ -437,6 +445,14 @@ def _build_parser() -> argparse.ArgumentParser:
     database_cmd = sub.add_parser("database", help="Create or reinitialize the database")
     database_cmd.set_defaults(func=_database)
 
+    load = sub.add_parser("load", help="Load data into the database")
+    load_sub = load.add_subparsers(dest="load_command")
+
+    load_database = load_sub.add_parser(
+        "database", help="Load seed data from parquet into the database"
+    )
+    load_database.set_defaults(func=_load_database)
+
     return parser
 
 
@@ -471,6 +487,8 @@ def main():
         parser.parse_args(["validate", "--help"])
     elif args.command == "database":
         args.func(args)
+    elif args.command == "load" and args.load_command is None:
+        parser.parse_args(["load", "--help"])
     else:
         args.func(args)
 
