@@ -523,6 +523,36 @@ def test_oracle_with_default_site(httpx_mock) -> None:
     jobs = OracleCollector(base).fetch()
     assert jobs[0].title == "DBA"
     assert jobs[0].location == "Redwood Shores"
+    assert str(jobs[0].url) == (
+        "https://eeho.fa.us2.oraclecloud.com"
+        "/hcmUI/CandidateExperience/en/sites/CX_1/job/001"
+    )
+
+
+def test_oracle_uses_external_url_when_present(httpx_mock) -> None:
+    base = "https://eeho.fa.us2.oraclecloud.com"
+    api = f"{base}/hcmRestApi/resources/latest/recruitingCEJobRequisitions"
+    ext_url = f"{base}/hcmUI/CandidateExperience/en/sites/CX_1/job/999"
+    httpx_mock.add_response(
+        url=(
+            f"{api}?onlyData=true"
+            f"&finder=findReqs%3BsiteNumber%3DCX_1%2Climit%3D200%2Coffset%3D0"
+            f"&expand=requisitionList"
+        ),
+        json={
+            "items": [{
+                "TotalJobsCount": 1,
+                "requisitionList": [{
+                    "Id": "999",
+                    "Title": "Engineer",
+                    "ExternalURL": ext_url,
+                    "PostedDate": "2026-03-01T00:00:00Z",
+                }],
+            }]
+        },
+    )
+    jobs = OracleCollector(base).fetch()
+    assert str(jobs[0].url) == ext_url
 
 
 def test_oracle_extracts_site_number_from_query(httpx_mock) -> None:

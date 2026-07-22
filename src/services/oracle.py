@@ -370,7 +370,7 @@ class OracleCollector(BaseCollector):
         return Job(
             url=as_url(
                 item.get("ExternalURL")
-                or f"{base}/?keyword=&mode=jobs&lang=en&site_number={site}#{ats_id}"
+                or f"{base}/hcmUI/CandidateExperience/en/sites/{site}/job/{ats_id}"
             ),
             title=title,
             company=company,
