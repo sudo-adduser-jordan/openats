@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from typing import ClassVar
 
+from config import DATABASE_PATH, VALIDATION_WORKERS
 from services._models import ATSType
 from utils.logger import logger
 
@@ -467,7 +468,7 @@ class Database:
         c for c in JOBS_COLUMNS if c not in ("description", "raw")
     ]
 
-    _LOCAL_PATH = "data/database.db"
+    _LOCAL_PATH = DATABASE_PATH
 
     # --- Connection ---
 
@@ -744,7 +745,9 @@ class Database:
 
     # --- URL validation ---
 
-    def validate_job_urls(self, connection, max_workers: int = 20, dry_run: bool = False):
+    def validate_job_urls(
+        self, connection, max_workers: int = VALIDATION_WORKERS, dry_run: bool = False
+    ):
         try:
             import concurrent.futures
             import random
@@ -822,7 +825,9 @@ class Database:
             logger.error(operation="validate_job_urls", error=str(exc))
             raise
 
-    def validate_company_urls(self, connection, max_workers: int = 20, dry_run: bool = False):
+    def validate_company_urls(
+        self, connection, max_workers: int = VALIDATION_WORKERS, dry_run: bool = False
+    ):
         try:
             import concurrent.futures
             import random

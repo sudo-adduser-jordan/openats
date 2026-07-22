@@ -3,13 +3,14 @@ import threading
 from queue import Queue
 from typing import Any
 
+from config import WORKER_BATCH_SIZE
 from database.database import database
 from utils.logger import logger
 from utils.normalize import normalize_jobs
 
 
 class Worker(threading.Thread):
-    def __init__(self, q: Queue[Any], batch_size: int = 500) -> None:
+    def __init__(self, q: Queue[Any], batch_size: int = WORKER_BATCH_SIZE) -> None:
         super().__init__()
         self.queue = q
         self.batch_size = batch_size

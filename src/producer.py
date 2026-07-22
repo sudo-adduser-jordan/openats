@@ -4,6 +4,7 @@ import threading
 import time
 from queue import Full
 
+from config import PRODUCER_WORKERS, TOKEN_BUCKET_RATE
 from services._base import CollectorRegistry
 from utils.logger import logger
 
@@ -13,7 +14,7 @@ class TokenBucket:
 
     # def __init__(self, rate: float = 10.0, burst: int | None = None) -> None:
     # def __init__(self, rate: float = 1.0, burst: int | None = None) -> None:
-    def __init__(self, rate: float = 2.0, burst: int | None = None) -> None:
+    def __init__(self, rate: float = TOKEN_BUCKET_RATE, burst: int | None = None) -> None:
         self._rate = rate
         self._burst = burst or max(1, int(rate))
         self._tokens = float(self._burst)
@@ -90,7 +91,7 @@ def run_producers(ingest_queue, companies_by_ats, shutdown_event):
 
     # with concurrent.futures.ThreadPoolExecutor(max_workers=64) as pool:
     # with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
-    with concurrent.futures.ThreadPoolExecutor(max_workers=16) as pool:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=PRODUCER_WORKERS) as pool:
         future_map = {}
         for ats_type, c in entries:
             future = pool.submit(_fetch_jobs, ats_type, c["slug"], c["name"], c.get("url"))
