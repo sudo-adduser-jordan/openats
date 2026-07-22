@@ -89,7 +89,6 @@ NOT_SENIOR_MANAGER = """
 """
 
 CREATE_VIEW_JUNIOR_US_SOFTWARE = f"""
-DROP VIEW IF EXISTS view_junior_us_software;
 CREATE VIEW IF NOT EXISTS view_junior_us_software AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
 WHERE "title" LIKE '%software%'
@@ -98,7 +97,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_SOFTWARE = f"""
-DROP VIEW IF EXISTS view_us_software;
 CREATE VIEW IF NOT EXISTS view_us_software AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
 WHERE "title" LIKE '%software%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
@@ -106,7 +104,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_DEVELOPER = f"""
-DROP VIEW IF EXISTS view_us_developer;
 CREATE VIEW IF NOT EXISTS view_us_developer AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
 WHERE "title" LIKE '%developer%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
@@ -114,7 +111,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_JUNIOR_US_DEVELOPER = f"""
-DROP VIEW IF EXISTS view_junior_us_developer;
 CREATE VIEW IF NOT EXISTS view_junior_us_developer AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
 WHERE "title" LIKE '%developer%'
@@ -123,7 +119,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_FRONTEND = f"""
-DROP VIEW IF EXISTS view_us_frontend;
 CREATE VIEW IF NOT EXISTS view_us_frontend AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
 WHERE "title" LIKE '%frontend%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
@@ -131,7 +126,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_JUNIOR_US_SOFTWARE_24H = f"""
-DROP VIEW IF EXISTS view_junior_us_software_24h;
 CREATE VIEW IF NOT EXISTS view_junior_us_software_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
 WHERE "title" LIKE '%software%'
@@ -140,7 +134,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_SOFTWARE_24H = f"""
-DROP VIEW IF EXISTS view_us_software_24h;
 CREATE VIEW IF NOT EXISTS view_us_software_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
 WHERE "title" LIKE '%software%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
@@ -148,7 +141,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_DEVELOPER_24H = f"""
-DROP VIEW IF EXISTS view_us_developer_24h;
 CREATE VIEW IF NOT EXISTS view_us_developer_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
 WHERE "title" LIKE '%developer%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
@@ -156,7 +148,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_JUNIOR_US_DEVELOPER_24H = f"""
-DROP VIEW IF EXISTS view_junior_us_developer_24h;
 CREATE VIEW IF NOT EXISTS view_junior_us_developer_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
 WHERE "title" LIKE '%developer%'
@@ -165,7 +156,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_FRONTEND_24H = f"""
-DROP VIEW IF EXISTS view_us_frontend_24h;
 CREATE VIEW IF NOT EXISTS view_us_frontend_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
 WHERE "title" LIKE '%frontend%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
@@ -173,7 +163,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_BACKEND = f"""
-DROP VIEW IF EXISTS view_us_backend;
 CREATE VIEW IF NOT EXISTS view_us_backend AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
 WHERE "title" LIKE '%backend%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
@@ -181,7 +170,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_FULLSTACK = f"""
-DROP VIEW IF EXISTS view_us_fullstack;
 CREATE VIEW IF NOT EXISTS view_us_fullstack AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
 WHERE ("title" LIKE '%full stack%' OR "title" LIKE '%fullstack%'){NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
@@ -189,7 +177,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_DATABASE = f"""
-DROP VIEW IF EXISTS view_us_database;
 CREATE VIEW IF NOT EXISTS view_us_database AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
 WHERE "title" LIKE '%database%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
@@ -197,7 +184,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_DEVOPS = f"""
-DROP VIEW IF EXISTS view_us_devops;
 CREATE VIEW IF NOT EXISTS view_us_devops AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
 WHERE "title" LIKE '%devops%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
@@ -205,7 +191,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_BACKEND_24H = f"""
-DROP VIEW IF EXISTS view_us_backend_24h;
 CREATE VIEW IF NOT EXISTS view_us_backend_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
 WHERE "title" LIKE '%backend%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
@@ -213,7 +198,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_FULLSTACK_24H = f"""
-DROP VIEW IF EXISTS view_us_fullstack_24h;
 CREATE VIEW IF NOT EXISTS view_us_fullstack_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
 WHERE ("title" LIKE '%full stack%' OR "title" LIKE '%fullstack%'){NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
@@ -221,7 +205,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_DATABASE_24H = f"""
-DROP VIEW IF EXISTS view_us_database_24h;
 CREATE VIEW IF NOT EXISTS view_us_database_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
 WHERE "title" LIKE '%database%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
@@ -229,7 +212,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_DEVOPS_24H = f"""
-DROP VIEW IF EXISTS view_us_devops_24h;
 CREATE VIEW IF NOT EXISTS view_us_devops_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
 WHERE "title" LIKE '%devops%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
@@ -237,7 +219,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_NEW_GRAD = f"""
-DROP VIEW IF EXISTS view_us_new_grad;
 CREATE VIEW IF NOT EXISTS view_us_new_grad AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
 WHERE "title" LIKE '%new grad%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
@@ -245,7 +226,6 @@ ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_NEW_GRAD_24H = f"""
-DROP VIEW IF EXISTS view_us_new_grad_24h;
 CREATE VIEW IF NOT EXISTS view_us_new_grad_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
 WHERE "title" LIKE '%new grad%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
@@ -924,8 +904,13 @@ class Database:
 
     # --- Views ---
 
+    @staticmethod
+    def _drop_view(connection, name):
+        connection.execute(f"DROP VIEW IF EXISTS {name}")
+
     def create_view_junior_us_software(self, connection):
         try:
+            self._drop_view(connection, "view_junior_us_software")
             connection.execute(CREATE_VIEW_JUNIOR_US_SOFTWARE)
         except Exception as exc:
             logger.error(operation="create_view_junior_us_software", error=str(exc))
@@ -933,6 +918,7 @@ class Database:
 
     def create_view_us_software(self, connection):
         try:
+            self._drop_view(connection, "view_us_software")
             connection.execute(CREATE_VIEW_US_SOFTWARE)
         except Exception as exc:
             logger.error(operation="create_view_us_software", error=str(exc))
@@ -940,6 +926,7 @@ class Database:
 
     def create_view_us_developer(self, connection):
         try:
+            self._drop_view(connection, "view_us_developer")
             connection.execute(CREATE_VIEW_US_DEVELOPER)
         except Exception as exc:
             logger.error(operation="create_view_us_developer", error=str(exc))
@@ -947,6 +934,7 @@ class Database:
 
     def create_view_junior_us_developer(self, connection):
         try:
+            self._drop_view(connection, "view_junior_us_developer")
             connection.execute(CREATE_VIEW_JUNIOR_US_DEVELOPER)
         except Exception as exc:
             logger.error(operation="create_view_junior_us_developer", error=str(exc))
@@ -954,6 +942,7 @@ class Database:
 
     def create_view_us_frontend(self, connection):
         try:
+            self._drop_view(connection, "view_us_frontend")
             connection.execute(CREATE_VIEW_US_FRONTEND)
         except Exception as exc:
             logger.error(operation="create_view_us_frontend", error=str(exc))
@@ -961,6 +950,7 @@ class Database:
 
     def create_view_junior_us_software_24h(self, connection):
         try:
+            self._drop_view(connection, "view_junior_us_software_24h")
             connection.execute(CREATE_VIEW_JUNIOR_US_SOFTWARE_24H)
         except Exception as exc:
             logger.error(operation="create_view_junior_us_software_24h", error=str(exc))
@@ -968,6 +958,7 @@ class Database:
 
     def create_view_us_software_24h(self, connection):
         try:
+            self._drop_view(connection, "view_us_software_24h")
             connection.execute(CREATE_VIEW_US_SOFTWARE_24H)
         except Exception as exc:
             logger.error(operation="create_view_us_software_24h", error=str(exc))
@@ -975,6 +966,7 @@ class Database:
 
     def create_view_us_developer_24h(self, connection):
         try:
+            self._drop_view(connection, "view_us_developer_24h")
             connection.execute(CREATE_VIEW_US_DEVELOPER_24H)
         except Exception as exc:
             logger.error(operation="create_view_us_developer_24h", error=str(exc))
@@ -982,6 +974,7 @@ class Database:
 
     def create_view_junior_us_developer_24h(self, connection):
         try:
+            self._drop_view(connection, "view_junior_us_developer_24h")
             connection.execute(CREATE_VIEW_JUNIOR_US_DEVELOPER_24H)
         except Exception as exc:
             logger.error(operation="create_view_junior_us_developer_24h", error=str(exc))
@@ -989,6 +982,7 @@ class Database:
 
     def create_view_us_frontend_24h(self, connection):
         try:
+            self._drop_view(connection, "view_us_frontend_24h")
             connection.execute(CREATE_VIEW_US_FRONTEND_24H)
         except Exception as exc:
             logger.error(operation="create_view_us_frontend_24h", error=str(exc))
@@ -996,6 +990,7 @@ class Database:
 
     def create_view_us_backend(self, connection):
         try:
+            self._drop_view(connection, "view_us_backend")
             connection.execute(CREATE_VIEW_US_BACKEND)
         except Exception as exc:
             logger.error(operation="create_view_us_backend", error=str(exc))
@@ -1003,6 +998,7 @@ class Database:
 
     def create_view_us_fullstack(self, connection):
         try:
+            self._drop_view(connection, "view_us_fullstack")
             connection.execute(CREATE_VIEW_US_FULLSTACK)
         except Exception as exc:
             logger.error(operation="create_view_us_fullstack", error=str(exc))
@@ -1010,6 +1006,7 @@ class Database:
 
     def create_view_us_database(self, connection):
         try:
+            self._drop_view(connection, "view_us_database")
             connection.execute(CREATE_VIEW_US_DATABASE)
         except Exception as exc:
             logger.error(operation="create_view_us_database", error=str(exc))
@@ -1017,6 +1014,7 @@ class Database:
 
     def create_view_us_devops(self, connection):
         try:
+            self._drop_view(connection, "view_us_devops")
             connection.execute(CREATE_VIEW_US_DEVOPS)
         except Exception as exc:
             logger.error(operation="create_view_us_devops", error=str(exc))
@@ -1024,6 +1022,7 @@ class Database:
 
     def create_view_us_backend_24h(self, connection):
         try:
+            self._drop_view(connection, "view_us_backend_24h")
             connection.execute(CREATE_VIEW_US_BACKEND_24H)
         except Exception as exc:
             logger.error(operation="create_view_us_backend_24h", error=str(exc))
@@ -1031,6 +1030,7 @@ class Database:
 
     def create_view_us_fullstack_24h(self, connection):
         try:
+            self._drop_view(connection, "view_us_fullstack_24h")
             connection.execute(CREATE_VIEW_US_FULLSTACK_24H)
         except Exception as exc:
             logger.error(operation="create_view_us_fullstack_24h", error=str(exc))
@@ -1038,6 +1038,7 @@ class Database:
 
     def create_view_us_database_24h(self, connection):
         try:
+            self._drop_view(connection, "view_us_database_24h")
             connection.execute(CREATE_VIEW_US_DATABASE_24H)
         except Exception as exc:
             logger.error(operation="create_view_us_database_24h", error=str(exc))
@@ -1045,6 +1046,7 @@ class Database:
 
     def create_view_us_devops_24h(self, connection):
         try:
+            self._drop_view(connection, "view_us_devops_24h")
             connection.execute(CREATE_VIEW_US_DEVOPS_24H)
         except Exception as exc:
             logger.error(operation="create_view_us_devops_24h", error=str(exc))
@@ -1052,6 +1054,7 @@ class Database:
 
     def create_view_us_new_grad(self, connection):
         try:
+            self._drop_view(connection, "view_us_new_grad")
             connection.execute(CREATE_VIEW_US_NEW_GRAD)
         except Exception as exc:
             logger.error(operation="create_view_us_new_grad", error=str(exc))
@@ -1059,6 +1062,7 @@ class Database:
 
     def create_view_us_new_grad_24h(self, connection):
         try:
+            self._drop_view(connection, "view_us_new_grad_24h")
             connection.execute(CREATE_VIEW_US_NEW_GRAD_24H)
         except Exception as exc:
             logger.error(operation="create_view_us_new_grad_24h", error=str(exc))
