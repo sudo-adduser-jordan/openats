@@ -4,7 +4,7 @@ import threading
 import time
 from queue import Full
 
-from config import PRODUCER_WORKERS, TOKEN_BUCKET_RATE
+from config import CONCURRENCY, REQUEST_RATE
 from services._base import CollectorRegistry
 from utils.logger import logger
 
@@ -12,9 +12,7 @@ from utils.logger import logger
 class TokenBucket:
     """Thread-safe token bucket rate limiter per ATS type."""
 
-    # def __init__(self, rate: float = 10.0, burst: int | None = None) -> None:
-    # def __init__(self, rate: float = 1.0, burst: int | None = None) -> None:
-    def __init__(self, rate: float = TOKEN_BUCKET_RATE, burst: int | None = None) -> None:
+    def __init__(self, rate: int = REQUEST_RATE, burst: int | None = None) -> None:
         self._rate = rate
         self._burst = burst or max(1, int(rate))
         self._tokens = float(self._burst)
@@ -89,9 +87,7 @@ def run_producers(ingest_queue, companies_by_ats, shutdown_event):
             if i < len(companies):
                 entries.append((ats_type, companies[i]))
 
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=64) as pool:
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
-    with concurrent.futures.ThreadPoolExecutor(max_workers=PRODUCER_WORKERS) as pool:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=CONCURRENCY) as pool:
         future_map = {}
         for ats_type, c in entries:
             future = pool.submit(_fetch_jobs, ats_type, c["slug"], c["name"], c.get("url"))

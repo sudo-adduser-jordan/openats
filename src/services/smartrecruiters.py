@@ -222,7 +222,9 @@ class SmartRecruitersCollector(BaseCollector):
             ats_id=item["id"],
             location=loc_str,
             country_iso=country_iso,
-            language=item["language"]["code"] if isinstance(item.get("language"), dict) else item.get("language"),
+            language=item["language"]["code"]
+            if isinstance(item.get("language"), dict)
+            else item.get("language"),
             is_remote=is_remote,
             department=department,
             team=team,

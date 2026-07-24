@@ -214,7 +214,9 @@ class TheHubCollector(BaseCollector):
         if isinstance(position_types, list) and position_types:
             raw["job_position_type_ids"] = position_types[:5]
 
-        country_iso = str(cc).strip().upper() if isinstance(cc, str) and len(cc.strip()) == 2 else None
+        country_iso = (
+            str(cc).strip().upper() if isinstance(cc, str) and len(cc.strip()) == 2 else None
+        )
 
         return Job(
             url=as_url(JOB_URL_TEMPLATE.format(job_id=ats_id)),

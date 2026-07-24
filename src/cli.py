@@ -9,7 +9,7 @@ from typing import Any
 
 import dotenv
 
-from config import INGEST_QUEUE_MAXSIZE, VALIDATION_WORKERS
+from config import VALIDATION_CONCURRENCY
 from database.database import SELECT_COMPANIES_SLUG_URL, database
 from producer import run_producers
 from services._models import DISABLED_ATS, ATSType
@@ -76,7 +76,7 @@ def _run_collect_pipeline(
     companies_by_ats: dict[ATSType, list[dict[str, str]]],
 ) -> tuple[str, int, int]:
     start = time.monotonic()
-    ingest_queue: Queue[Any] = Queue(maxsize=INGEST_QUEUE_MAXSIZE)
+    ingest_queue: Queue[Any] = Queue(maxsize=100)
     shutdown_event = threading.Event()
     setup_signal_handlers(shutdown_event, ingest_queue)
 
@@ -427,8 +427,8 @@ def _build_parser() -> argparse.ArgumentParser:
     validate_jobs.add_argument(
         "--workers",
         type=int,
-        default=VALIDATION_WORKERS,
-        help=f"Concurrent workers (default: {VALIDATION_WORKERS})",
+        default=VALIDATION_CONCURRENCY,
+        help=f"Concurrent workers (default: {VALIDATION_CONCURRENCY})",
     )
     validate_jobs.add_argument(
         "--dry-run", action="store_true", help="Print findings without modifying DB"
@@ -441,8 +441,8 @@ def _build_parser() -> argparse.ArgumentParser:
     validate_companies.add_argument(
         "--workers",
         type=int,
-        default=VALIDATION_WORKERS,
-        help=f"Concurrent workers (default: {VALIDATION_WORKERS})",
+        default=VALIDATION_CONCURRENCY,
+        help=f"Concurrent workers (default: {VALIDATION_CONCURRENCY})",
     )
     validate_companies.add_argument(
         "--dry-run", action="store_true", help="Print findings without modifying DB"

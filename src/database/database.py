@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from typing import ClassVar
 
-from config import DATABASE_PATH, VALIDATION_WORKERS
+from config import DATABASE_PATH, VALIDATION_CONCURRENCY
 from services._models import ATSType
 from utils.logger import logger
 
@@ -746,7 +746,7 @@ class Database:
     # --- URL validation ---
 
     def validate_job_urls(
-        self, connection, max_workers: int = VALIDATION_WORKERS, dry_run: bool = False
+        self, connection, max_workers: int = VALIDATION_CONCURRENCY, dry_run: bool = False
     ):
         try:
             import concurrent.futures
@@ -826,7 +826,7 @@ class Database:
             raise
 
     def validate_company_urls(
-        self, connection, max_workers: int = VALIDATION_WORKERS, dry_run: bool = False
+        self, connection, max_workers: int = VALIDATION_CONCURRENCY, dry_run: bool = False
     ):
         try:
             import concurrent.futures

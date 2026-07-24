@@ -659,11 +659,8 @@ def _parse_job_element(element: Tag, anchor: Tag, base: str, company: str) -> Jo
     # 3. The anchor text itself — fine when the anchor IS the title link
     #    (Bloomberg, IBM), useless when it's an "Apply" button (skip those).
     title = ""
-    title_el = (
-        element.find(["h2", "h3"])
-        or element.find(
-            class_=lambda v: bool(v) and "title" in str(v).lower()
-        )
+    title_el = element.find(["h2", "h3"]) or element.find(
+        class_=lambda v: bool(v) and "title" in str(v).lower()
     )
     if title_el is not None:
         title = title_el.get_text(strip=True)
@@ -678,9 +675,7 @@ def _parse_job_element(element: Tag, anchor: Tag, base: str, company: str) -> Jo
 
     # Location: any element with a "location" class.
     location: str | None = None
-    loc_el = element.find(
-        class_=lambda v: bool(v) and "location" in str(v).lower()
-    )
+    loc_el = element.find(class_=lambda v: bool(v) and "location" in str(v).lower())
     if loc_el is not None:
         location = re.sub(r"\s+", " ", loc_el.get_text(strip=True)).strip() or None
 
