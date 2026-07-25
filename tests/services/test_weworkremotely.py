@@ -23,7 +23,7 @@ _FEED_RE = re.compile(
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import services.weworkremotely as wwr
+    import services.collect.weworkremotely as wwr
     monkeypatch.setattr(wwr, "MAX_RETRIES", 1)
     monkeypatch.setattr(wwr, "RETRY_BASE_DELAY", 0.0)
 

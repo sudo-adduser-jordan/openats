@@ -21,7 +21,7 @@ _API_RE = re.compile(r"^https://www\.wanted\.co\.kr/api/v4/jobs(?:\?.*)?$")
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch, httpx_mock) -> None:
-    import services.wanted as w
+    import services.collect.wanted as w
     monkeypatch.setattr(w, "MAX_RETRIES", 1)
     monkeypatch.setattr(w, "RETRY_BASE_DELAY", 0.0)
     httpx_mock.add_response(

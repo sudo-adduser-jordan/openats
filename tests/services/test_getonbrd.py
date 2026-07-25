@@ -22,7 +22,7 @@ _API_RE = re.compile(r"^https://www\.getonbrd\.com/api/v0/")
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import services.getonbrd as gob
+    import services.collect.getonbrd as gob
     monkeypatch.setattr(gob, "MAX_RETRIES", 1)
     monkeypatch.setattr(gob, "RETRY_BASE_DELAY", 0.0)
 

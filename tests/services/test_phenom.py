@@ -33,7 +33,7 @@ from services._models import ATSType
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import services.phenom as ph
+    import services.collect.phenom as ph
     monkeypatch.setattr(ph, "MAX_RETRIES", 1)
     monkeypatch.setattr(ph, "RETRY_BASE_DELAY", 0.0)
 
@@ -334,7 +334,7 @@ def test_init_404_raises_company_not_found(httpx_mock) -> None:
 
 
 def test_widgets_5xx_retries(monkeypatch, httpx_mock) -> None:
-    import services.phenom as ph
+    import services.collect.phenom as ph
     monkeypatch.setattr(ph, "MAX_RETRIES", 3)
     _seed_csrf(httpx_mock)
     httpx_mock.add_response(url=WIDGETS_URL, status_code=503)
@@ -346,7 +346,7 @@ def test_widgets_5xx_retries(monkeypatch, httpx_mock) -> None:
 
 
 def test_widgets_429_with_retry_after_honored(monkeypatch, httpx_mock) -> None:
-    import services.phenom as ph
+    import services.collect.phenom as ph
     monkeypatch.setattr(ph, "MAX_RETRIES", 3)
 
     sleeps: list[float] = []
@@ -373,7 +373,7 @@ def test_malformed_json_raises_clean_error(httpx_mock) -> None:
 
 
 def test_network_error_raises(monkeypatch, httpx_mock) -> None:
-    import services.phenom as ph
+    import services.collect.phenom as ph
     monkeypatch.setattr(ph, "MAX_RETRIES", 2)
     _seed_csrf(httpx_mock)
     httpx_mock.add_exception(

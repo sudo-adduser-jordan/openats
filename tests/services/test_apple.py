@@ -16,7 +16,7 @@ import pytest
 from exceptions import CollectorError
 from services import AppleCollector, CollectorRegistry
 from services._models import ATSType
-from services.apple import MAX_RETRIES
+from services.collect.apple import MAX_RETRIES
 
 _CSRF_URL = "https://jobs.apple.com/api/v1/CSRFToken"
 _SEARCH_URL = "https://jobs.apple.com/api/v1/search"
@@ -30,7 +30,7 @@ def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
     job's detail URL. Tests that specifically exercise the detail
     enrichment can override this with their own _enrich_apple_details.
     """
-    import services.apple as m
+    import services.collect.apple as m
     monkeypatch.setattr(m, "RETRY_BASE_DELAY", 0.0)
 
     async def _no_enrich(jobs, timeout_s):

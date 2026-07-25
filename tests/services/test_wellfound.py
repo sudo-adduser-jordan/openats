@@ -24,7 +24,7 @@ import pytest
 from exceptions import CollectorError
 from services import CollectorRegistry, WellfoundCollector
 from services._models import ATSType, Job
-from services.wellfound import (
+from services.collect.wellfound import (
     DEFAULT_ROLE_SLUGS,
     _parse_job_window,
     _parse_relative,
@@ -36,7 +36,7 @@ _FIRECRAWL_RE = re.compile(r"^https://api\.firecrawl\.dev/v1/collect$")
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import services.wellfound as w
+    import services.collect.wellfound as w
     monkeypatch.setattr(w, "MAX_RETRIES", 1)
     monkeypatch.setattr(w, "RETRY_BASE_DELAY", 0.0)
 

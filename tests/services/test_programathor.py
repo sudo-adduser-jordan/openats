@@ -22,7 +22,7 @@ import pytest
 from exceptions import CollectorError
 from services import CollectorRegistry, ProgramathorCollector
 from services._models import ATSType
-from services.programathor import (
+from services.collect.programathor import (
     _parse_brl_amount,
     _parse_salary,
     _resolve_proxy_url,
@@ -33,7 +33,7 @@ _LISTING_RE = re.compile(r"^https://programathor\.com\.br/jobs\?page=\d+$")
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import services.programathor as p
+    import services.collect.programathor as p
     monkeypatch.setattr(p, "MAX_RETRIES", 1)
     monkeypatch.setattr(p, "RETRY_BASE_DELAY", 0.0)
 

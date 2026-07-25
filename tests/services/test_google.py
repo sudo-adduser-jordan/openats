@@ -24,7 +24,7 @@ from services._models import ATSType
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import services.google as g
+    import services.collect.google as g
     monkeypatch.setattr(g, "MAX_RETRIES", 1)
     monkeypatch.setattr(g, "RETRY_BASE_DELAY", 0.0)
 
@@ -182,7 +182,7 @@ def test_page_1_omits_page_param(httpx_mock) -> None:
 
 
 def test_5xx_retries(monkeypatch, httpx_mock) -> None:
-    import services.google as g
+    import services.collect.google as g
     monkeypatch.setattr(g, "MAX_RETRIES", 3)
     httpx_mock.add_response(url=_page_url(1), status_code=503)
     httpx_mock.add_response(
@@ -196,7 +196,7 @@ def test_5xx_retries(monkeypatch, httpx_mock) -> None:
 def test_429_with_retry_after_is_honored(monkeypatch, httpx_mock) -> None:
     import asyncio
 
-    import services.google as g
+    import services.collect.google as g
     monkeypatch.setattr(g, "MAX_RETRIES", 3)
 
     sleeps: list[float] = []
@@ -216,7 +216,7 @@ def test_429_with_retry_after_is_honored(monkeypatch, httpx_mock) -> None:
 
 
 def test_5xx_exhausts_retries(monkeypatch, httpx_mock) -> None:
-    import services.google as g
+    import services.collect.google as g
     monkeypatch.setattr(g, "MAX_RETRIES", 3)
     httpx_mock.add_response(url=_page_url(1), status_code=502, is_reusable=True)
     with pytest.raises(CollectorError, match="502"):

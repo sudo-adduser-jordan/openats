@@ -13,7 +13,7 @@ URL = "https://acme.pinpointhq.com/postings.json"
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import services.pinpoint as pp
+    import services.collect.pinpoint as pp
     monkeypatch.setattr(pp, "MAX_RETRIES", 1)
     monkeypatch.setattr(pp, "RETRY_BASE_DELAY", 0.0)
 
@@ -179,7 +179,7 @@ def test_redirect_treated_as_not_found(httpx_mock) -> None:
 
 
 def test_5xx_retries(monkeypatch, httpx_mock) -> None:
-    import services.pinpoint as pp
+    import services.collect.pinpoint as pp
     monkeypatch.setattr(pp, "MAX_RETRIES", 3)
     httpx_mock.add_response(url=URL, status_code=503)
     httpx_mock.add_response(url=URL, json={"data": [_posting()]})

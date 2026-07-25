@@ -30,7 +30,7 @@ import pytest
 from exceptions import CollectorError
 from services import CollectorRegistry, InfoJobsSpainCollector
 from services._models import ATSType
-from services.infojobs_es import (
+from services.collect.infojobs_es import (
     _absolutize_link,
     _extract_initial_props,
     _fmt_amount,
@@ -57,7 +57,7 @@ def test_live_e2e_fetches_real_infojobs_page() -> None:
     if find_spec("httpcloak") is None:
         pytest.skip("httpcloak is required for live InfoJobs Spain e2e")
 
-    import services.infojobs_es as ij
+    import services.collect.infojobs_es as ij
 
     ij.MAX_RETRIES = 3
     ij.RETRY_BASE_DELAY = 1.5
@@ -80,7 +80,7 @@ def test_live_e2e_fetches_real_infojobs_page() -> None:
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
     """Collapse retry backoff so the timing-sensitive tests stay quick."""
-    import services.infojobs_es as ij
+    import services.collect.infojobs_es as ij
     monkeypatch.setattr(ij, "MAX_RETRIES", 1)
     monkeypatch.setattr(ij, "RETRY_BASE_DELAY", 0.0)
 

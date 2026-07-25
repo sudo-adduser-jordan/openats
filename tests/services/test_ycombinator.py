@@ -16,7 +16,7 @@ import pytest
 from exceptions import CollectorError
 from services import CollectorRegistry, YCombinatorCollector
 from services._models import ATSType
-from services.ycombinator import (
+from services.collect.ycombinator import (
     _employment_from_type,
     _extract_balanced_array,
     _parse_min_experience,
@@ -30,7 +30,7 @@ _PAGE_RE = re.compile(r"^https://www\.ycombinator\.com/companies/[a-z0-9-]+$")
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import services.ycombinator as yc
+    import services.collect.ycombinator as yc
     monkeypatch.setattr(yc, "MAX_RETRIES", 1)
     monkeypatch.setattr(yc, "RETRY_BASE_DELAY", 0.0)
 

@@ -23,12 +23,12 @@ import pytest
 from exceptions import CollectorError, CompanyNotFoundError
 from services import AvatureCollector, CollectorRegistry, get_collector
 from services._models import ATSType
-from services.avature import _paginated_search_url
+from services.collect.avature import _paginated_search_url
 
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import services.avature as av
+    import services.collect.avature as av
     monkeypatch.setattr(av, "MAX_RETRIES", 1)
     monkeypatch.setattr(av, "RETRY_BASE_DELAY", 0.0)
 
@@ -376,7 +376,7 @@ def test_404_raises_company_not_found(httpx_mock) -> None:
 
 
 def test_404_does_not_retry(monkeypatch, httpx_mock) -> None:
-    import services.avature as av
+    import services.collect.avature as av
     monkeypatch.setattr(av, "MAX_RETRIES", 3)
     httpx_mock.add_response(url=_url("missing", 0), status_code=404)
     with pytest.raises(CompanyNotFoundError):
@@ -384,7 +384,7 @@ def test_404_does_not_retry(monkeypatch, httpx_mock) -> None:
 
 
 def test_retries_on_5xx_then_succeeds(monkeypatch, httpx_mock) -> None:
-    import services.avature as av
+    import services.collect.avature as av
     monkeypatch.setattr(av, "MAX_RETRIES", 3)
     httpx_mock.add_response(url=_url("acme", 0), status_code=503)
     httpx_mock.add_response(
@@ -396,7 +396,7 @@ def test_retries_on_5xx_then_succeeds(monkeypatch, httpx_mock) -> None:
 
 
 def test_5xx_exhausts_retries(monkeypatch, httpx_mock) -> None:
-    import services.avature as av
+    import services.collect.avature as av
     monkeypatch.setattr(av, "MAX_RETRIES", 3)
     httpx_mock.add_response(url=_url("acme", 0), status_code=502, is_reusable=True)
     with pytest.raises(CollectorError, match="502"):

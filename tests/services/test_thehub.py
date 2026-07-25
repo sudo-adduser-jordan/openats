@@ -21,7 +21,7 @@ _API_RE = re.compile(r"^https://thehub\.io/api/jobs")
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import services.thehub as t
+    import services.collect.thehub as t
     monkeypatch.setattr(t, "MAX_RETRIES", 1)
     monkeypatch.setattr(t, "RETRY_BASE_DELAY", 0.0)
 

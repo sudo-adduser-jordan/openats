@@ -16,7 +16,7 @@ from services._models import ATSType
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import services.icims as ic
+    import services.collect.icims as ic
     monkeypatch.setattr(ic, "MAX_RETRIES", 1)
     monkeypatch.setattr(ic, "RETRY_BASE_DELAY", 0.0)
 
@@ -240,7 +240,7 @@ def test_raises_company_not_found_on_404(httpx_mock) -> None:
 
 
 def test_5xx_retries(monkeypatch, httpx_mock) -> None:
-    import services.icims as ic
+    import services.collect.icims as ic
     monkeypatch.setattr(ic, "MAX_RETRIES", 3)
     httpx_mock.add_response(url=_page_url("acme", 0), status_code=503)
     httpx_mock.add_response(
@@ -253,7 +253,7 @@ def test_5xx_retries(monkeypatch, httpx_mock) -> None:
 
 
 def test_5xx_exhausts_retries(monkeypatch, httpx_mock) -> None:
-    import services.icims as ic
+    import services.collect.icims as ic
     monkeypatch.setattr(ic, "MAX_RETRIES", 3)
     httpx_mock.add_response(url=_page_url("acme", 0), status_code=502, is_reusable=True)
     with pytest.raises(CollectorError, match="502"):

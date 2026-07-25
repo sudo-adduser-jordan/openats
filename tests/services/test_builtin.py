@@ -21,7 +21,7 @@ _LISTING_RE = re.compile(r"^https://builtin\.com/jobs\?page=\d+$")
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import services.builtin as bi
+    import services.collect.builtin as bi
     monkeypatch.setattr(bi, "MAX_RETRIES", 1)
     monkeypatch.setattr(bi, "RETRY_BASE_DELAY", 0.0)
 

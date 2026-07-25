@@ -22,7 +22,7 @@ _API_RE = re.compile(r"^https://www\.jobs\.ch/api/v1/public/search")
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch, httpx_mock) -> None:
-    import services.jobsch as j
+    import services.collect.jobsch as j
     monkeypatch.setattr(j, "MAX_RETRIES", 1)
     monkeypatch.setattr(j, "RETRY_BASE_DELAY", 0.0)
     httpx_mock.add_response(

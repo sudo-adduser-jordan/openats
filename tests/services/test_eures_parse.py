@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import asyncio
 
-from services.eures import EuresCollector, _extract_detail_description
+from services.collect.eures import EuresCollector, _extract_detail_description
 
 
 def _base_item(**overrides):

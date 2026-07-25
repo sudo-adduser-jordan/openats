@@ -14,7 +14,7 @@ import logging
 
 import pytest
 
-from services.eures import _gather_tolerant
+from services.collect.eures import _gather_tolerant
 
 
 @pytest.mark.asyncio

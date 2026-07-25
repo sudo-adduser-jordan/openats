@@ -17,7 +17,7 @@ from services._models import ATSType
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import services.remoteok as ro
+    import services.collect.remoteok as ro
     monkeypatch.setattr(ro, "MAX_RETRIES", 1)
     monkeypatch.setattr(ro, "RETRY_BASE_DELAY", 0.0)
 

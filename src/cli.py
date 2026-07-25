@@ -332,6 +332,34 @@ def _validate_companies(args: argparse.Namespace):
     )
 
 
+def _discover(args: argparse.Namespace):
+    from services._models import ATSType
+    from services.discover import discover_companies
+
+    ats_type = None
+    if args.ats:
+        try:
+            ats_type = ATSType(args.ats)
+        except ValueError:
+            valid_types = ", ".join(m.value for m in ATSType)
+            print(f"Unknown ATS type: {args.ats}. Valid types: {valid_types}")
+            return
+
+    write = not args.dry_run
+    new_companies = discover_companies(ats=ats_type, write=write)
+
+    if not new_companies:
+        print("No new companies discovered")
+        return
+
+    label = " (dry run)" if args.dry_run else ""
+    print(f"Discovered {len(new_companies)} new companies{label}:")
+    for company in new_companies[:50]:
+        print(f"  {company.ats.value}: {company.slug} ({company.name})")
+    if len(new_companies) > 50:
+        print(f"  ... and {len(new_companies) - 50} more")
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="openats", description="openats CLI")
     sub = parser.add_subparsers(dest="command")
@@ -452,6 +480,13 @@ def _build_parser() -> argparse.ArgumentParser:
     database_cmd = sub.add_parser("database", help="Create or reinitialize the database")
     database_cmd.set_defaults(func=_database)
 
+    discover = sub.add_parser("discover", help="Discover companies on ATS platforms")
+    discover.add_argument("--ats", help="ATS type to discover (default: all registered)")
+    discover.add_argument(
+        "--dry-run", action="store_true", help="Print findings without modifying DB"
+    )
+    discover.set_defaults(func=_discover)
+
     load = sub.add_parser("load", help="Load data into the database")
     load_sub = load.add_subparsers(dest="load_command")
 
@@ -496,6 +531,8 @@ def main():
         args.func(args)
     elif args.command == "load" and args.load_command is None:
         parser.parse_args(["load", "--help"])
+    elif args.command == "discover":
+        args.func(args)
     else:
         args.func(args)
 

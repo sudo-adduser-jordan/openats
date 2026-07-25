@@ -19,7 +19,7 @@ from services._models import ATSType
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import services.cornerstone as cs
+    import services.collect.cornerstone as cs
     monkeypatch.setattr(cs, "MAX_RETRIES", 1)
     monkeypatch.setattr(cs, "RETRY_BASE_DELAY", 0.0)
 
@@ -213,7 +213,7 @@ def test_no_pagination_when_total_le_page_size(httpx_mock) -> None:
 
 
 def test_search_5xx_retries(monkeypatch, httpx_mock) -> None:
-    import services.cornerstone as cs
+    import services.collect.cornerstone as cs
     monkeypatch.setattr(cs, "MAX_RETRIES", 3)
     httpx_mock.add_response(url=CAREER_URL, text=_site_html())
     httpx_mock.add_response(url=API_URL, status_code=503)
@@ -223,7 +223,7 @@ def test_search_5xx_retries(monkeypatch, httpx_mock) -> None:
 
 
 def test_429_with_retry_after_honored(monkeypatch, httpx_mock) -> None:
-    import services.cornerstone as cs
+    import services.collect.cornerstone as cs
     monkeypatch.setattr(cs, "MAX_RETRIES", 3)
 
     sleeps: list[float] = []

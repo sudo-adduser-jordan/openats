@@ -24,7 +24,7 @@ _API_RE = re.compile(
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import services.bundesagentur as ba
+    import services.collect.bundesagentur as ba
     monkeypatch.setattr(ba, "MAX_RETRIES", 2)
     monkeypatch.setattr(ba, "RETRY_BASE_DELAY", 0.0)
     monkeypatch.setattr(ba, "RETRY_JITTER", 0.0)
@@ -104,7 +104,7 @@ def test_page_failure_logs_page_skip_not_subtree_skip(
     skip (bounded loss) — not a subtree skip — and must not silently
     look like a clean response.
     """
-    import services.bundesagentur as ba
+    import services.collect.bundesagentur as ba
     # Tiny page size so a 3-row dataset spans 3 pages and we can exercise
     # the per-page failure path deterministically.
     monkeypatch.setattr(ba, "PAGE_SIZE", 1)

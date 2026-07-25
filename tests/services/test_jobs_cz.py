@@ -27,7 +27,7 @@ from services._models import ATSType
 
 @pytest.fixture(autouse=True)
 def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import services.jobs_cz as j
+    import services.collect.jobs_cz as j
     monkeypatch.setattr(j, "MAX_RETRIES", 1)
     monkeypatch.setattr(j, "RETRY_BASE_DELAY", 0.0)
 
@@ -490,7 +490,7 @@ def test_parse_salary_handles_zwj_and_nbsp() -> None:
     """The live HTML interleaves U+200D (zero-width joiner) and U+00A0
     (non-breaking space) into the salary text. The parser strips both
     before matching."""
-    from services.jobs_cz import _normalize_whitespace, _parse_salary
+    from services.collect.jobs_cz import _normalize_whitespace, _parse_salary
 
     raw = "60 000 ‍–‍ 70 000 Kč"
     cleaned = _normalize_whitespace(raw)
@@ -517,7 +517,7 @@ def test_missing_bs4_raises_collector_error(monkeypatch: pytest.MonkeyPatch) -> 
 
     monkeypatch.setattr(builtins, "__import__", fake_import)
 
-    from services.jobs_cz import _parse_listing
+    from services.collect.jobs_cz import _parse_listing
 
     with pytest.raises(CollectorError):
         _parse_listing("<html></html>")

@@ -12,7 +12,7 @@ import logging
 
 import pytest
 
-from services.meta import MetaCollector, _description_from_detail_html
+from services.collect.meta import MetaCollector, _description_from_detail_html
 
 
 def test_returns_empty_with_warning_when_cloakbrowser_missing(
