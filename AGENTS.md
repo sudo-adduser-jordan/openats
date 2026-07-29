@@ -183,18 +183,11 @@ Unique: `idx_companies_unique (ats, name, slug)`
 # notes
 
 ```
-SELECT * FROM "jobs" 
-WHERE title LIKE '%software%'
--- AND title LIKE '%us% OR located in the us' 
-AND title LIKE '%new grad%' 
--- AND title LIKE '%junior%' 
-AND title NOT LIKE '%senior%'
-ORDER BY posted_at DESC;
-```
-
-```
 uv run openats 
 uv run openats dump recent jobs
 uv run openats collect watchlist 500
 uv run openats collect company amazon google microsoft cvs
+nohup uv run openats >/dev/null 2>&1 & disown
+pgrep -af "uv run openats"
+btop
 ```
