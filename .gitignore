@@ -27,6 +27,7 @@ venv/
 
 
 logs
+nohup.out
 
 # data
 data/csv/jobs.csv
