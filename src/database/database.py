@@ -50,8 +50,7 @@ CREATE TABLE IF NOT EXISTS jobs (
 """
 
 CREATE_COMPANIES_TABLE = (
-    "CREATE TABLE IF NOT EXISTS companies (ats TEXT, name TEXT, slug TEXT, url TEXT, "
-    "active INTEGER DEFAULT 1, last_collected_at TEXT, last_jobs_count INTEGER, last_url_check TEXT)"
+    "CREATE TABLE IF NOT EXISTS companies (ats TEXT, name TEXT, slug TEXT, url TEXT)"
 )
 CREATE_INDEX_COMPANIES_ATS = "CREATE INDEX IF NOT EXISTS idx_companies_ats ON companies(ats)"
 CREATE_INDEX_COMPANIES_SLUG = "CREATE INDEX IF NOT EXISTS idx_companies_slug ON companies(slug)"
@@ -243,7 +242,7 @@ PRAGMA_CACHE_SIZE = "PRAGMA cache_size = -64000"
 PRAGMA_BUSY_TIMEOUT = "PRAGMA busy_timeout = 5000"
 PRAGMA_TEMP_STORE = "PRAGMA temp_store = MEMORY"
 PRAGMA_MMAP_SIZE = "PRAGMA mmap_size = 268435456"
-INSERT_COMPANY = "INSERT OR IGNORE INTO companies (ats, name, slug, url, active, last_collected_at, last_jobs_count, last_url_check) VALUES (?, ?, ?, ?, 1, NULL, NULL, NULL)"
+INSERT_COMPANY = "INSERT OR IGNORE INTO companies (ats, name, slug, url) VALUES (?, ?, ?, ?)"
 
 DROP_ATS_TABLE = "DROP TABLE IF EXISTS ats"
 CREATE_ATS_TABLE = "CREATE TABLE ats (ats TEXT, name TEXT, slug TEXT)"
