@@ -92,21 +92,30 @@ CREATE_VIEW_JUNIOR_US_SOFTWARE = f"""
 CREATE VIEW IF NOT EXISTS view_junior_us_software AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
 WHERE "title" LIKE '%software%'
-AND "title" LIKE '%junior%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+AND "title" LIKE '%junior%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_SOFTWARE = f"""
 CREATE VIEW IF NOT EXISTS view_us_software AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
-WHERE "title" LIKE '%software%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+WHERE "title" LIKE '%software%'
+{NOT_SENIOR_MANAGER}
+AND "title" NOT LIKE '%vp,%'
+AND "title" NOT LIKE '%vice%'
+AND "title" NOT LIKE '%president%'
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_DEVELOPER = f"""
 CREATE VIEW IF NOT EXISTS view_us_developer AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
-WHERE "title" LIKE '%developer%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+WHERE "title" LIKE '%developer%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
@@ -114,14 +123,18 @@ CREATE_VIEW_JUNIOR_US_DEVELOPER = f"""
 CREATE VIEW IF NOT EXISTS view_junior_us_developer AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
 WHERE "title" LIKE '%developer%'
-AND "title" LIKE '%junior%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+AND "title" LIKE '%junior%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_FRONTEND = f"""
 CREATE VIEW IF NOT EXISTS view_us_frontend AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
-WHERE "title" LIKE '%frontend%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+WHERE "title" LIKE '%frontend%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
@@ -129,21 +142,27 @@ CREATE_VIEW_JUNIOR_US_SOFTWARE_24H = f"""
 CREATE VIEW IF NOT EXISTS view_junior_us_software_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
 WHERE "title" LIKE '%software%'
-AND "title" LIKE '%junior%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+AND "title" LIKE '%junior%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_SOFTWARE_24H = f"""
 CREATE VIEW IF NOT EXISTS view_us_software_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
-WHERE "title" LIKE '%software%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+WHERE "title" LIKE '%software%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_DEVELOPER_24H = f"""
 CREATE VIEW IF NOT EXISTS view_us_developer_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
-WHERE "title" LIKE '%developer%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+WHERE "title" LIKE '%developer%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
@@ -151,84 +170,108 @@ CREATE_VIEW_JUNIOR_US_DEVELOPER_24H = f"""
 CREATE VIEW IF NOT EXISTS view_junior_us_developer_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
 WHERE "title" LIKE '%developer%'
-AND "title" LIKE '%junior%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+AND "title" LIKE '%junior%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_FRONTEND_24H = f"""
 CREATE VIEW IF NOT EXISTS view_us_frontend_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
-WHERE "title" LIKE '%frontend%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+WHERE "title" LIKE '%frontend%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_BACKEND = f"""
 CREATE VIEW IF NOT EXISTS view_us_backend AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
-WHERE "title" LIKE '%backend%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+WHERE "title" LIKE '%backend%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_FULLSTACK = f"""
 CREATE VIEW IF NOT EXISTS view_us_fullstack AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
-WHERE ("title" LIKE '%full stack%' OR "title" LIKE '%fullstack%'){NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+WHERE ("title" LIKE '%full stack%' OR "title" LIKE '%fullstack%')
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_DATABASE = f"""
 CREATE VIEW IF NOT EXISTS view_us_database AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
-WHERE "title" LIKE '%database%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+WHERE "title" LIKE '%database%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_DEVOPS = f"""
 CREATE VIEW IF NOT EXISTS view_us_devops AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
-WHERE "title" LIKE '%devops%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+WHERE "title" LIKE '%devops%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_BACKEND_24H = f"""
 CREATE VIEW IF NOT EXISTS view_us_backend_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
-WHERE "title" LIKE '%backend%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+WHERE "title" LIKE '%backend%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_FULLSTACK_24H = f"""
 CREATE VIEW IF NOT EXISTS view_us_fullstack_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
-WHERE ("title" LIKE '%full stack%' OR "title" LIKE '%fullstack%'){NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+WHERE ("title" LIKE '%full stack%' OR "title" LIKE '%fullstack%')
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_DATABASE_24H = f"""
 CREATE VIEW IF NOT EXISTS view_us_database_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
-WHERE "title" LIKE '%database%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+WHERE "title" LIKE '%database%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_DEVOPS_24H = f"""
 CREATE VIEW IF NOT EXISTS view_us_devops_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
-WHERE "title" LIKE '%devops%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+WHERE "title" LIKE '%devops%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_NEW_GRAD = f"""
 CREATE VIEW IF NOT EXISTS view_us_new_grad AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
-WHERE "title" LIKE '%new grad%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+WHERE "title" LIKE '%new grad%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
 CREATE_VIEW_US_NEW_GRAD_24H = f"""
 CREATE VIEW IF NOT EXISTS view_us_new_grad_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
-WHERE "title" LIKE '%new grad%'{NOT_SENIOR_MANAGER}AND "country_iso" LIKE '%US%'
+WHERE "title" LIKE '%new grad%'
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
 
