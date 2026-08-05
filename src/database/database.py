@@ -88,6 +88,124 @@ NOT_SENIOR_MANAGER = """
     AND "title" NOT LIKE '%vp of%'
 """
 
+AI_TITLE_MATCH = """
+    AND (
+        "title" LIKE '% ai%'
+        OR "title" LIKE '%ai %'
+        OR "title" LIKE '%ai,%'
+        OR "title" LIKE '%ai/%'
+        OR "title" LIKE '%ai.%'
+        OR "title" LIKE '%machine learning%'
+        OR "title" LIKE '%machine-learning%'
+        OR "title" LIKE '%artificial intelligence%'
+        OR "title" LIKE '%large language model%'
+        OR "title" LIKE '%llm%'
+        OR "title" LIKE '%deep learning%'
+        OR "title" LIKE '%natural language%'
+        OR "title" LIKE '%nlp%'
+        OR "title" LIKE '%computer vision%'
+        OR "title" LIKE '%generative%'
+        OR "title" LIKE '%genai%'
+        OR "title" LIKE '%prompt engineering%'
+        OR "title" LIKE '%mlops%'
+        OR "title" LIKE '%ml ops%'
+        OR "title" LIKE '%ml engineer%'
+        OR "title" LIKE '%ml platform%'
+        OR "title" LIKE '%mle%'
+        OR "title" LIKE '%model training%'
+        OR "title" LIKE '%model inference%'
+        OR "title" LIKE '%ai/ml%'
+        OR "title" LIKE '%agentic%'
+    )
+"""
+
+INTERN_TITLE_MATCH = """
+    AND ("title" LIKE '%intern%' OR "title" LIKE '%internship%')
+"""
+
+ENTRY_LEVEL_MATCH = """
+    AND (
+        "title" LIKE '%junior%'
+        OR "title" LIKE '% jr%'
+        OR "title" LIKE '%jr %'
+        OR "title" LIKE '%entry level%'
+        OR "title" LIKE '%entry-level%'
+        OR "title" LIKE '%new grad%'
+        OR "title" LIKE '%new graduate%'
+        OR "title" LIKE '%recent grad%'
+        OR "title" LIKE '%graduate%'
+        OR "title" LIKE '%associate%'
+        OR "title" LIKE '%early career%'
+        OR "title" LIKE '%early-career%'
+        OR "title" LIKE '%apprentice%'
+        OR "title" LIKE '%trainee%'
+        OR "title" LIKE '%foundation%'
+        OR "title" LIKE '%rotational%'
+        OR "title" LIKE '%intern%'
+        OR "title" LIKE '%internship%'
+        OR "title" LIKE '%co-op%'
+        OR "title" LIKE '%coop%'
+        OR "title" LIKE '%engineer i%'
+        OR "title" LIKE '%developer i%'
+        OR "title" LIKE '%level 1%'
+        OR "title" LIKE '% l1%'
+        OR "title" LIKE '%l1 %'
+    )
+"""
+
+SOFTWARE_LEANING_MATCH = """
+    AND (
+        "title" LIKE '%software%'
+        OR "title" LIKE '%engineer%'
+        OR "title" LIKE '%developer%'
+        OR "title" LIKE '% sde%'
+        OR "title" LIKE '%sde %'
+        OR "title" LIKE '%programmer%'
+        OR "title" LIKE '%frontend%'
+        OR "title" LIKE '%backend%'
+        OR "title" LIKE '%fullstack%'
+        OR "title" LIKE '%full stack%'
+        OR "title" LIKE '% web%'
+        OR "title" LIKE '%mobile%'
+        OR "title" LIKE '%ios%'
+        OR "title" LIKE '%android%'
+        OR "title" LIKE '%qa%'
+        OR "title" LIKE '%devops%'
+        OR "title" LIKE '%data%'
+        OR "title" LIKE '%security%'
+        OR "title" LIKE '% ai%'
+        OR "title" LIKE '%ai %'
+        OR "title" LIKE '% ml%'
+        OR "title" LIKE '%ml %'
+    )
+"""
+
+NURSING_TITLE_MATCH = """
+    AND (
+        "title" LIKE '%nursing%'
+        OR "title" LIKE '%nurse%'
+        OR "title" LIKE '% rn%'
+        OR "title" LIKE '%rn -%'
+        OR "title" LIKE '%rn,%'
+        OR "title" LIKE '%rn.%'
+        OR "title" LIKE '%rn/%'
+        OR "title" LIKE '%rn-%'
+        OR "title" LIKE '%nurse practitioner%'
+        OR "title" LIKE '% np%'
+        OR "title" LIKE '%np -%'
+        OR "title" LIKE '%np,%'
+        OR "title" LIKE '%np/%'
+        OR "title" LIKE '%lpn%'
+        OR "title" LIKE '%lvn%'
+        OR "title" LIKE '%cna%'
+        OR "title" LIKE '%crna%'
+        OR "title" LIKE '% bsn%'
+        OR "title" LIKE '%bsn %'
+        OR "title" LIKE '%travel nurse%'
+        OR "title" LIKE '%charge nurse%'
+    )
+"""
+
 CREATE_VIEW_JUNIOR_US_SOFTWARE = f"""
 CREATE VIEW IF NOT EXISTS view_junior_us_software AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
@@ -271,6 +389,106 @@ CREATE VIEW IF NOT EXISTS view_us_new_grad_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
 WHERE "title" LIKE '%new grad%'
 {NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
+ORDER BY "posted_at" DESC
+"""
+
+CREATE_VIEW_US_AI = f"""
+CREATE VIEW IF NOT EXISTS view_us_ai AS
+SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
+WHERE 1=1
+{AI_TITLE_MATCH}
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
+ORDER BY "posted_at" DESC
+"""
+
+CREATE_VIEW_JUNIOR_US_AI = f"""
+CREATE VIEW IF NOT EXISTS view_junior_us_ai AS
+SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
+WHERE "title" LIKE '%junior%'
+{AI_TITLE_MATCH}
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
+ORDER BY "posted_at" DESC
+"""
+
+CREATE_VIEW_US_AI_24H = f"""
+CREATE VIEW IF NOT EXISTS view_us_ai_24h AS
+SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
+WHERE 1=1
+{AI_TITLE_MATCH}
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
+ORDER BY "posted_at" DESC
+"""
+
+CREATE_VIEW_JUNIOR_US_AI_24H = f"""
+CREATE VIEW IF NOT EXISTS view_junior_us_ai_24h AS
+SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
+WHERE "title" LIKE '%junior%'
+{AI_TITLE_MATCH}
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
+ORDER BY "posted_at" DESC
+"""
+
+CREATE_VIEW_US_INTERN = f"""
+CREATE VIEW IF NOT EXISTS view_us_intern AS
+SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
+WHERE 1=1
+{INTERN_TITLE_MATCH}
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
+ORDER BY "posted_at" DESC
+"""
+
+CREATE_VIEW_US_INTERN_24H = f"""
+CREATE VIEW IF NOT EXISTS view_us_intern_24h AS
+SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
+WHERE 1=1
+{INTERN_TITLE_MATCH}
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
+ORDER BY "posted_at" DESC
+"""
+
+CREATE_VIEW_US_ENTRY_LEVEL = f"""
+CREATE VIEW IF NOT EXISTS view_us_entry_level AS
+SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
+WHERE 1=1
+{ENTRY_LEVEL_MATCH}
+{SOFTWARE_LEANING_MATCH}
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
+ORDER BY "posted_at" DESC
+"""
+
+CREATE_VIEW_US_ENTRY_LEVEL_24H = f"""
+CREATE VIEW IF NOT EXISTS view_us_entry_level_24h AS
+SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
+WHERE 1=1
+{ENTRY_LEVEL_MATCH}
+{SOFTWARE_LEANING_MATCH}
+{NOT_SENIOR_MANAGER}
+AND "country_iso" LIKE '%US%'
+ORDER BY "posted_at" DESC
+"""
+
+CREATE_VIEW_US_NURSING = f"""
+CREATE VIEW IF NOT EXISTS view_us_nursing AS
+SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
+WHERE 1=1
+{NURSING_TITLE_MATCH}
+AND "country_iso" LIKE '%US%'
+ORDER BY "posted_at" DESC
+"""
+
+CREATE_VIEW_US_NURSING_24H = f"""
+CREATE VIEW IF NOT EXISTS view_us_nursing_24h AS
+SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
+WHERE 1=1
+{NURSING_TITLE_MATCH}
 AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
@@ -573,6 +791,16 @@ class Database:
         self.create_view_us_devops_24h(connection)
         self.create_view_us_new_grad(connection)
         self.create_view_us_new_grad_24h(connection)
+        self.create_view_us_ai(connection)
+        self.create_view_junior_us_ai(connection)
+        self.create_view_us_ai_24h(connection)
+        self.create_view_junior_us_ai_24h(connection)
+        self.create_view_us_intern(connection)
+        self.create_view_us_intern_24h(connection)
+        self.create_view_us_entry_level(connection)
+        self.create_view_us_entry_level_24h(connection)
+        self.create_view_us_nursing(connection)
+        self.create_view_us_nursing_24h(connection)
         self.create_index_ats_unique(connection)
         self.create_index_companies_unique(connection)
         logger.info(operation="database_initialize_done")
@@ -1113,6 +1341,86 @@ class Database:
             connection.execute(CREATE_VIEW_US_NEW_GRAD_24H)
         except Exception as exc:
             logger.error(operation="create_view_us_new_grad_24h", error=str(exc))
+            raise
+
+    def create_view_us_ai(self, connection):
+        try:
+            self._drop_view(connection, "view_us_ai")
+            connection.execute(CREATE_VIEW_US_AI)
+        except Exception as exc:
+            logger.error(operation="create_view_us_ai", error=str(exc))
+            raise
+
+    def create_view_junior_us_ai(self, connection):
+        try:
+            self._drop_view(connection, "view_junior_us_ai")
+            connection.execute(CREATE_VIEW_JUNIOR_US_AI)
+        except Exception as exc:
+            logger.error(operation="create_view_junior_us_ai", error=str(exc))
+            raise
+
+    def create_view_us_ai_24h(self, connection):
+        try:
+            self._drop_view(connection, "view_us_ai_24h")
+            connection.execute(CREATE_VIEW_US_AI_24H)
+        except Exception as exc:
+            logger.error(operation="create_view_us_ai_24h", error=str(exc))
+            raise
+
+    def create_view_junior_us_ai_24h(self, connection):
+        try:
+            self._drop_view(connection, "view_junior_us_ai_24h")
+            connection.execute(CREATE_VIEW_JUNIOR_US_AI_24H)
+        except Exception as exc:
+            logger.error(operation="create_view_junior_us_ai_24h", error=str(exc))
+            raise
+
+    def create_view_us_intern(self, connection):
+        try:
+            self._drop_view(connection, "view_us_intern")
+            connection.execute(CREATE_VIEW_US_INTERN)
+        except Exception as exc:
+            logger.error(operation="create_view_us_intern", error=str(exc))
+            raise
+
+    def create_view_us_intern_24h(self, connection):
+        try:
+            self._drop_view(connection, "view_us_intern_24h")
+            connection.execute(CREATE_VIEW_US_INTERN_24H)
+        except Exception as exc:
+            logger.error(operation="create_view_us_intern_24h", error=str(exc))
+            raise
+
+    def create_view_us_entry_level(self, connection):
+        try:
+            self._drop_view(connection, "view_us_entry_level")
+            connection.execute(CREATE_VIEW_US_ENTRY_LEVEL)
+        except Exception as exc:
+            logger.error(operation="create_view_us_entry_level", error=str(exc))
+            raise
+
+    def create_view_us_entry_level_24h(self, connection):
+        try:
+            self._drop_view(connection, "view_us_entry_level_24h")
+            connection.execute(CREATE_VIEW_US_ENTRY_LEVEL_24H)
+        except Exception as exc:
+            logger.error(operation="create_view_us_entry_level_24h", error=str(exc))
+            raise
+
+    def create_view_us_nursing(self, connection):
+        try:
+            self._drop_view(connection, "view_us_nursing")
+            connection.execute(CREATE_VIEW_US_NURSING)
+        except Exception as exc:
+            logger.error(operation="create_view_us_nursing", error=str(exc))
+            raise
+
+    def create_view_us_nursing_24h(self, connection):
+        try:
+            self._drop_view(connection, "view_us_nursing_24h")
+            connection.execute(CREATE_VIEW_US_NURSING_24H)
+        except Exception as exc:
+            logger.error(operation="create_view_us_nursing_24h", error=str(exc))
             raise
 
     def apply_performance_settings(self, connection):
