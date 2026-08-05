@@ -88,18 +88,49 @@ NOT_SENIOR_MANAGER = """
     AND "title" NOT LIKE '%vp of%'
 """
 
+NOT_SENIOR_MANAGER_AI = """
+    AND "title" NOT LIKE '%senior%'
+    AND "title" NOT LIKE '%director%'
+    AND "title" NOT LIKE '%sr.%'
+    AND "title" NOT LIKE '%sr %'
+    AND "title" NOT LIKE '%principal%'
+    AND "title" NOT LIKE '%lead%'
+    AND "title" NOT LIKE '%vp of%'
+"""
+
 AI_TITLE_MATCH = """
     AND (
-        "title" LIKE '% ai%'
-        OR "title" LIKE '%ai %'
+        "title" LIKE 'ai %'
+        OR "title" LIKE '% ai %'
+        OR "title" LIKE '% ai,%'
+        OR "title" LIKE '% ai/%'
+        OR "title" LIKE '% ai-%'
+        OR "title" LIKE '% ai.%'
+        OR "title" LIKE '% ai(%'
+        OR "title" LIKE '% ai)%'
+        OR "title" LIKE '% ai&%'
         OR "title" LIKE '%ai,%'
         OR "title" LIKE '%ai/%'
+        OR "title" LIKE '%ai-%'
         OR "title" LIKE '%ai.%'
+        OR "title" LIKE '%ai&%'
+        OR "title" LIKE '%ai(%'
+        OR "title" LIKE '%ai)%'
+        OR "title" LIKE 'llm %'
+        OR "title" LIKE '% llm%'
+        OR "title" LIKE '%llm %'
+        OR "title" LIKE '%llm,%'
+        OR "title" LIKE '%llm/%'
+        OR "title" LIKE '%llm-%'
+        OR "title" LIKE '%llm.%'
+        OR "title" LIKE '%llm(%'
+        OR "title" LIKE '%llm)%'
+        OR "title" LIKE '%llms%'
+        OR "title" LIKE '%llmops%'
         OR "title" LIKE '%machine learning%'
         OR "title" LIKE '%machine-learning%'
         OR "title" LIKE '%artificial intelligence%'
         OR "title" LIKE '%large language model%'
-        OR "title" LIKE '%llm%'
         OR "title" LIKE '%deep learning%'
         OR "title" LIKE '%natural language%'
         OR "title" LIKE '%nlp%'
@@ -114,8 +145,41 @@ AI_TITLE_MATCH = """
         OR "title" LIKE '%mle%'
         OR "title" LIKE '%model training%'
         OR "title" LIKE '%model inference%'
-        OR "title" LIKE '%ai/ml%'
         OR "title" LIKE '%agentic%'
+        OR "title" LIKE '%aiops%'
+        OR "title" LIKE '%algorithm%'
+    )
+"""
+
+IT_SECTOR_MATCH = """
+    AND (
+        "title" LIKE '%engineer%'
+        OR "title" LIKE '%developer%'
+        OR "title" LIKE '%develop%'
+        OR "title" LIKE '%software%'
+        OR "title" LIKE '%sde%'
+        OR "title" LIKE '%programmer%'
+        OR "title" LIKE '%architect%'
+        OR "title" LIKE '%scientist%'
+        OR "title" LIKE '%researcher%'
+        OR "title" LIKE '%mlops%'
+        OR "title" LIKE '%devops%'
+        OR "title" LIKE '%sre%'
+        OR "title" LIKE '%platform%'
+        OR "title" LIKE '%infrastructure%'
+        OR "title" LIKE '%backend%'
+        OR "title" LIKE '%frontend%'
+        OR "title" LIKE '%fullstack%'
+        OR "title" LIKE '%full stack%'
+        OR "title" LIKE '%systems%'
+        OR "title" LIKE '%database%'
+        OR "title" LIKE '%tester%'
+        OR "title" LIKE '%qa%'
+        OR "title" LIKE '%technical%'
+        OR "title" LIKE '%technology%'
+        OR "title" LIKE '%data%'
+        OR "title" LIKE '%product%'
+        OR "title" LIKE '%analyst%'
     )
 """
 
@@ -398,7 +462,8 @@ CREATE VIEW IF NOT EXISTS view_us_ai AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
 WHERE 1=1
 {AI_TITLE_MATCH}
-{NOT_SENIOR_MANAGER}
+{IT_SECTOR_MATCH}
+{NOT_SENIOR_MANAGER_AI}
 AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
@@ -408,7 +473,8 @@ CREATE VIEW IF NOT EXISTS view_junior_us_ai AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
 WHERE "title" LIKE '%junior%'
 {AI_TITLE_MATCH}
-{NOT_SENIOR_MANAGER}
+{IT_SECTOR_MATCH}
+{NOT_SENIOR_MANAGER_AI}
 AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
@@ -418,7 +484,8 @@ CREATE VIEW IF NOT EXISTS view_us_ai_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
 WHERE 1=1
 {AI_TITLE_MATCH}
-{NOT_SENIOR_MANAGER}
+{IT_SECTOR_MATCH}
+{NOT_SENIOR_MANAGER_AI}
 AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
@@ -428,7 +495,8 @@ CREATE VIEW IF NOT EXISTS view_junior_us_ai_24h AS
 SELECT "url", "apply_url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
 WHERE "title" LIKE '%junior%'
 {AI_TITLE_MATCH}
-{NOT_SENIOR_MANAGER}
+{IT_SECTOR_MATCH}
+{NOT_SENIOR_MANAGER_AI}
 AND "country_iso" LIKE '%US%'
 ORDER BY "posted_at" DESC
 """
