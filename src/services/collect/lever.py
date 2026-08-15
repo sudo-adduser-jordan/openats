@@ -7,8 +7,7 @@ Single fetch returns every posting with rich fields:
 
 * ``descriptionPlain`` — full plain-text job body (intro + sections).
 * ``categories.commitment`` — "Full-time" / "Part-time" / "Internship" /
-  "Contract"; we map to the canonical employment-type enum and keep
-  the original string in ``commitment``.
+  "Contract"; we map to the canonical employment-type enum.
 * ``salaryRange`` — ``{min, max, currency, interval}`` when published.
 * ``workplaceType`` — "remote" / "hybrid" / "onsite" → ``is_remote``.
 
@@ -47,8 +46,7 @@ _LEVER_INTERVAL_MAP: dict[str, SalaryPeriod] = {
 }
 
 # ``categories.commitment`` is a freeform string set by the employer.
-# Map common variants to the canonical employment-type enum; keep the
-# original string in ``commitment`` for downstream display.
+# Map common variants to the canonical employment-type enum.
 _COMMITMENT_TO_EMPLOYMENT_TYPE: dict[str, EmploymentType] = {
     "full-time": "FULL_TIME",
     "fulltime": "FULL_TIME",
@@ -96,7 +94,7 @@ class LeverCollector(BaseCollector):
         salary_period = _LEVER_INTERVAL_MAP.get(salary_interval)
 
         # Map the freeform ``commitment`` text to our canonical
-        # employment-type enum. Keep the original in ``commitment``.
+        # employment-type enum.
         employment_type: str | None = None
         if isinstance(commitment, str):
             norm = commitment.strip().lower()
@@ -168,11 +166,8 @@ class LeverCollector(BaseCollector):
             ats_id=item["id"],
             location=categories.get("location"),
             department=categories.get("department"),
-            team=categories.get("team"),
-            commitment=commitment,
             employment_type=employment_type,
             description=description,
-            apply_url=item.get("applyUrl"),
             is_remote=is_remote,
             salary_min=salary_min,
             salary_max=salary_max,

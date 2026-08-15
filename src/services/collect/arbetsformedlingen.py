@@ -23,7 +23,7 @@ import httpx
 
 from exceptions import CollectorError
 from services._base import BaseCollector, CollectorRegistry, _json
-from services._helpers import as_url, as_url_or_none
+from services._helpers import as_url
 from services._helpers import parse_iso_datetime as _parse_iso
 from services._models import ATSType, EmploymentType, Job
 
@@ -309,11 +309,6 @@ class ArbetsformedlingenCollector(BaseCollector):
         company = (
             employer.get("name") if isinstance(employer, dict) else None
         ) or "Arbetsförmedlingen"
-        # ``workplace`` is the trading name / site label (e.g. parent
-        # corp uses ``name``, the actual office is ``workplace``).
-        team = employer.get("workplace") if isinstance(employer, dict) else None
-        if isinstance(team, str) and team.strip().lower() == str(company).strip().lower():
-            team = None  # Don't duplicate company name into team.
 
         wpl = item.get("workplace_address") or {}
         location = _format_location(wpl)
@@ -332,7 +327,8 @@ class ArbetsformedlingenCollector(BaseCollector):
             if isinstance(sal_type, dict):
                 salary_summary = sal_type.get("label") or None
 
-        # Working hours type: heltid (full-time) / deltid (part-time).
+        # ``working_hours_type`` (heltid/deltid) is the schedule string;
+        # ``employment_type`` holds the contract label separately.
         working_hours_type = item.get("working_hours_type") or {}
         hours_label = (
             working_hours_type.get("label") if isinstance(working_hours_type, dict) else None
@@ -342,30 +338,11 @@ class ArbetsformedlingenCollector(BaseCollector):
         emp_label = emp_type_obj.get("label") if isinstance(emp_type_obj, dict) else None
         employment_type = _map_employment_type(emp_label, hours_label)
 
-        # ``commitment`` is the schedule string. Prefer Heltid/Deltid;
-        # fall back to scope_of_work range ("0–100 %") only when the
-        # API didn't fill the working_hours_type. Don't leak the
-        # employment-contract label here — that lives in ``employment_type``.
-        commitment: str | None = (
-            hours_label.strip() if isinstance(hours_label, str) and hours_label.strip() else None
-        )
-        if not commitment:
-            scope = item.get("scope_of_work") or {}
-            if isinstance(scope, dict):
-                lo, hi = scope.get("min"), scope.get("max")
-                if isinstance(lo, (int, float)) and isinstance(hi, (int, float)) and hi > 0:
-                    commitment = f"{int(hi)} %" if lo == hi else f"{int(lo)}–{int(hi)} %"
-
         # ``occupation_field`` is the high-level domain (Pedagogik,
         # Hälso- och sjukvård, IT-data, etc.) — Arbetsförmedlingen's
         # closest analog to a department label.
         occ_field = item.get("occupation_field") or {}
         department = occ_field.get("label") if isinstance(occ_field, dict) else None
-
-        # ``application_details.url`` is where to actually apply (often
-        # external — employer site or LinkedIn).
-        apply_details = item.get("application_details") or {}
-        apply_url = apply_details.get("url") if isinstance(apply_details, dict) else None
 
         # Employer's own external ref — usually null but worth keeping
         # when present.
@@ -407,14 +384,9 @@ class ArbetsformedlingenCollector(BaseCollector):
             country_iso="SE",
             language="sv",
             is_remote=is_remote,
-            team=team if isinstance(team, str) and team.strip() else None,
             description=description,
             department=department if isinstance(department, str) else None,
             employment_type=employment_type,
-            commitment=commitment,
-            apply_url=as_url_or_none(apply_url)
-            if isinstance(apply_url, str) and apply_url.startswith("http")
-            else None,
             requisition_id=requisition_id,
             salary_summary=salary_summary,
             posted_at=_parse_iso(item.get("publication_date") or item.get("application_deadline")),

@@ -229,12 +229,10 @@ class SuccessFactorsCollector(BaseCollector):
         # ``g:job_type`` (rare) — when present, map to the canonical
         # employment-type enum.
         employment_type: str | None = None
-        commitment: str | None = None
         job_type_text = _first_text(
             item.findtext("g:job_type", namespaces=_GOOGLE_NS),
         ) or _first_text(item.findtext("g:employment_type", namespaces=_GOOGLE_NS))
         if job_type_text:
-            commitment = job_type_text
             norm = job_type_text.lower()
             for needle, mapped in _EMPLOYMENT_TYPE_PATTERNS.items():
                 if needle in norm:
@@ -251,7 +249,6 @@ class SuccessFactorsCollector(BaseCollector):
             description=description,
             department=department,
             employment_type=employment_type,
-            commitment=commitment,
             posted_at=posted_at,
             fetched_at=datetime.now(tz=UTC),
         )

@@ -23,7 +23,7 @@ import httpx
 
 from exceptions import CollectorError, CompanyNotFoundError
 from services._base import BaseCollector, CollectorRegistry
-from services._helpers import as_url, as_url_or_none
+from services._helpers import as_url
 from services._models import ATSType, EmploymentType, Job
 
 if TYPE_CHECKING:
@@ -78,20 +78,17 @@ class RecruiteeCollector(BaseCollector):
     def _parse_offer(self, offer: dict[str, Any]) -> Job:
         location = _format_location(offer)
         country_iso = _extract_country_iso(offer)
-        loc_obj = offer.get("location") if isinstance(offer.get("location"), dict) else {}
 
         url = (
             offer.get("careers_url")
             or offer.get("careers_apply_url")
             or _fallback_url(self.company_slug, offer)
         )
-        apply_url = offer.get("careers_apply_url")
 
         is_remote = None
         if isinstance(offer.get("remote"), bool):
             is_remote = offer["remote"]
 
-        commitment = offer.get("category") or offer.get("schedule")
         salary_obj = offer.get("salary") if isinstance(offer.get("salary"), dict) else {}
 
         raw: dict[str, Any] = {}
@@ -117,17 +114,11 @@ class RecruiteeCollector(BaseCollector):
             ats_id=str(offer.get("id") or offer.get("slug") or ""),
             location=location,
             country_iso=country_iso,
-            lat=_to_float(offer.get("lat") or loc_obj.get("lat")),
-            lon=_to_float(offer.get("lng") or loc_obj.get("lng")),
             is_remote=is_remote,
             employment_type=_map_employment_type(
                 offer.get("employment_type_code") or offer.get("employment_type")
             ),
             department=offer.get("department") or offer.get("department_name"),
-            commitment=commitment if isinstance(commitment, str) else None,
-            apply_url=as_url_or_none(
-                apply_url if isinstance(apply_url, str) and apply_url != url else None
-            ),
             salary_min=_to_float(salary_obj.get("min")) if salary_obj else None,
             salary_max=_to_float(salary_obj.get("max")) if salary_obj else None,
             salary_currency=salary_obj.get("currency") if salary_obj else None,

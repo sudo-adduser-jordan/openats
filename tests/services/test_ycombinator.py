@@ -19,7 +19,6 @@ from services._models import ATSType
 from services.collect.ycombinator import (
     _employment_from_type,
     _extract_balanced_array,
-    _parse_min_experience,
     _parse_relative_age,
     _parse_salary_range,
 )
@@ -78,7 +77,6 @@ def _job(
     job_type: str = "Full-time",
     role: str = "engineering",
     pretty_role: str = "Engineering",
-    min_experience: str = "3+ years",
     created_at: str = "16 days",
     apply_url: str = "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fsignup_job_id%3D93354",
     description: str = "Build the core product.",
@@ -97,7 +95,6 @@ def _job(
         "role": role,
         "prettyRole": pretty_role,
         "salaryRange": salary,
-        "minExperience": min_experience,
         "createdAt": created_at,
         "description": description,
         "skills": [],
@@ -127,17 +124,6 @@ def test_balanced_array_returns_none_when_marker_missing() -> None:
 ])
 def test_parse_salary_range(raw, expected) -> None:
     assert _parse_salary_range(raw) == expected
-
-
-@pytest.mark.parametrize("raw, expected", [
-    ("3+ years", 3),
-    ("0 years", 0),
-    ("10+ years", 10),
-    ("", None),
-    (None, None),
-])
-def test_parse_min_experience(raw, expected) -> None:
-    assert _parse_min_experience(raw) == expected
 
 
 @pytest.mark.parametrize("raw, expected", [
@@ -197,14 +183,11 @@ def test_walks_companies_then_extracts_postings(httpx_mock) -> None:
     assert j.salary_min == 180000
     assert j.salary_max == 250000
     assert j.salary_currency == "USD"
-    assert j.experience == 3
     assert j.employment_type == "FULL_TIME"
-    assert j.commitment == "Full-time"
     assert j.department == "Engineering"
     assert j.description == "Build the core product.\n\nBuild things."
     assert j.posted_at is not None  # parsed from "16 days"
     assert str(j.url).endswith("/companies/acme/jobs/AbC123-founding-engineer")
-    assert "signup_job_id" in str(j.apply_url)
 
 
 # --- multi-company / multi-job ---------------------------------------------

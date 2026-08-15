@@ -157,7 +157,6 @@ def test_parses_full_listing_card(httpx_mock) -> None:
     assert j.salary_min == 3000.0
     assert j.salary_max == 5000.0
     assert j.employment_type == "CONTRACT"  # PJ → CONTRACT
-    assert j.commitment == "PJ"
     assert j.description == "Build Brazilian platforms."
     assert j.raw is not None
     assert j.raw["skills"] == ["Python", "API", "SQL"]

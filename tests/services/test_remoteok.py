@@ -52,7 +52,6 @@ def _job(
         "tags": ["developer", "ui"],
         "description": description,
         "location": location,
-        "apply_url": "https://example.com/apply",
         "salary_min": salary_min,
         "salary_max": salary_max,
         "logo": "",
@@ -98,7 +97,6 @@ def test_parses_full_payload(httpx_mock) -> None:
     assert j.salary_max == 150000
     assert j.posted_at is not None
     assert j.description == "Build a UI."
-    assert str(j.apply_url) == "https://example.com/apply"
 
 
 def test_strips_antibot_reminder_from_description(httpx_mock) -> None:

@@ -27,7 +27,6 @@ def _opening(
     country: str | None = "Germany",
     allows_remote: bool = False,
     position_type: str = "full_time",
-    team: str | None = "Platform",
     description: str | None = "<p>Build things.</p>",
 ) -> dict:
     return {
@@ -42,7 +41,6 @@ def _opening(
         "hosted_url": f"https://acme.hire.trakstar.com/jobs/{oid}/",
         "allows_remote": allows_remote,
         "position_type": position_type,
-        "team": team,
         "close_date": None,
         "created_on": "2026-04-01T10:00:00Z",
     }
@@ -82,7 +80,6 @@ def test_parses_basic_opening(httpx_mock) -> None:
     assert job.location == "Berlin, Germany"
     assert job.is_remote is False
     assert job.employment_type == "FULL_TIME"
-    assert job.team == "Platform"
     assert job.description and "Build things" in job.description
     assert job.url.unicode_string().startswith("https://acme.hire.trakstar.com/")
     assert job.posted_at is not None and job.posted_at.year == 2026

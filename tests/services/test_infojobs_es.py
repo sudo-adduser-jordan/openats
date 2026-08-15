@@ -308,7 +308,6 @@ def test_parses_full_offer(fake_httpcloak) -> None:
     assert j.language == "es"
     assert j.is_remote is False
     assert j.employment_type == "FULL_TIME"
-    assert j.commitment == "Contrato indefinido"
     assert j.salary_currency == "EUR"
     assert j.salary_period == "MONTH"
     assert j.salary_min == 1200.0
@@ -361,20 +360,18 @@ def test_contract_type_maps_to_employment_type(
     ], total_elements=1))
     jobs = InfoJobsSpainCollector("any", max_pages=1).fetch()
     assert jobs[0].employment_type == expected
-    assert jobs[0].commitment == label
 
 
 def test_unknown_contract_type_leaves_employment_type_none(
     fake_httpcloak,
 ) -> None:
-    """A label we haven't mapped surfaces as ``commitment`` only —
+    """A label we haven't mapped leaves ``employment_type`` None —
     we don't want to silently coerce unknowns into FULL_TIME."""
     fake_httpcloak.queue(html=_hydration_html([
         _offer(contract_type="Voluntariado lunar"),
     ], total_elements=1))
     jobs = InfoJobsSpainCollector("any", max_pages=1).fetch()
     assert jobs[0].employment_type is None
-    assert jobs[0].commitment == "Voluntariado lunar"
 
 
 # --- teleworking → is_remote inference --------------------------------------

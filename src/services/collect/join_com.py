@@ -222,12 +222,10 @@ class JoinComCollector(BaseCollector):
                 raw[k] = v
 
         # join.com's API returns ``city`` as an object — pull a flat
-        # ``City, Country`` label out of it. ``employmentType`` and
-        # ``department`` are similarly structured; fall through to None
-        # when they aren't a plain string.
+        # ``City, Country`` label out of it. ``department`` is similarly
+        # structured; fall through to None when it isn't a plain string.
         location = _flatten_location(item.get("location"), item.get("city"))
         department = _name_or_none(item.get("department"))
-        employment_type = _name_or_none(item.get("employmentType"))
 
         # The browser-visible URL uses the slug-style ``idParam``, not the
         # numeric id (which only the API uses). Falling back to a numeric
@@ -244,7 +242,6 @@ class JoinComCollector(BaseCollector):
             location=location,
             language=item.get("language"),
             department=department,
-            commitment=employment_type,
             posted_at=_parse_iso(item.get("publishedAt") or item.get("createdAt")),
             fetched_at=datetime.now(tz=UTC),
             raw=raw or None,

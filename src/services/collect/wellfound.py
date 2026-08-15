@@ -344,7 +344,7 @@ def _parse_markdown(md: str) -> Iterator[Job]:
         )
         window = md[window_start:window_end]
 
-        location, is_remote, salary_min, salary_max, posted, experience = _parse_job_window(window)
+        location, is_remote, salary_min, salary_max, posted = _parse_job_window(window)
 
         yield Job(
             url=as_url(url),
@@ -358,7 +358,6 @@ def _parse_markdown(md: str) -> Iterator[Job]:
             salary_period="YEAR" if (salary_min or salary_max) else None,
             salary_min=salary_min,
             salary_max=salary_max,
-            experience=experience,
             posted_at=posted,
             fetched_at=datetime.now(tz=UTC),
         )
@@ -416,13 +415,12 @@ def _parse_job_window(
     float | None,
     float | None,
     datetime | None,
-    int | None,
 ]:
     """Walk the metadata lines after a job title link and assign each
     line to the right field by shape:
     - lines containing ``$`` → salary
     - 'today' / 'yesterday' / 'N days ago' → posted_at
-    - 'N years of exp' → experience
+    - 'N years of exp' → ignored
     - 'Remote …' / 'Remote only' → is_remote (the rest is location)
     - everything else (and not a UI element) → location
     """
@@ -431,7 +429,6 @@ def _parse_job_window(
     salary_min: float | None = None
     salary_max: float | None = None
     posted: datetime | None = None
-    experience: int | None = None
 
     for raw in window.splitlines():
         line = raw.strip()
@@ -464,12 +461,9 @@ def _parse_job_window(
                 posted = d
                 continue
 
-        # Experience
-        if experience is None:
-            em = _EXPERIENCE_RE.match(line)
-            if em:
-                experience = int(em.group(1))
-                continue
+        # Experience line ('N years of exp') — no canonical field; skip.
+        if _EXPERIENCE_RE.match(line):
+            continue
 
         # Remote-prefix line ('Remote • United States', 'Remote only')
         rm = _REMOTE_PREFIX_RE.match(line)
@@ -491,7 +485,7 @@ def _parse_job_window(
         if location is None and not line.startswith("[") and len(line) < 120:
             location = line
 
-    return location, is_remote, salary_min, salary_max, posted, experience
+    return location, is_remote, salary_min, salary_max, posted
 
 
 def _parse_salary(s: str) -> tuple[float | None, float | None] | None:

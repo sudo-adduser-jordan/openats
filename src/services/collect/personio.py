@@ -145,7 +145,6 @@ class PersonioCollector(BaseCollector):
 
     def _parse_job(self, item: dict[str, Any], base: str) -> Job:
         ats_id = str(item.get("id") or item.get("jobId") or item.get("uuid") or "")
-        commitment = item.get("schedule") or item.get("employmentType")
 
         # Map Personio's freeform ``employment_type`` (and the
         # ``schedule`` fallback) to the canonical enum.
@@ -193,7 +192,6 @@ class PersonioCollector(BaseCollector):
             location=_extract_location(item),
             department=department if isinstance(department, str) else None,
             employment_type=employment_type,
-            commitment=commitment if isinstance(commitment, str) else None,
             posted_at=_parse_iso(item.get("createdAt") or item.get("created_at")),
             fetched_at=datetime.now(tz=UTC),
             raw=raw or None,

@@ -110,13 +110,12 @@ class TikTokCollector(BaseCollector):
 
         # ``recruit_type.en_name`` is the canonical employment-type label
         # ("Intern" / "Regular" / "Contract") — map to our enum.
-        employment_type, commitment = _map_recruit_type(item.get("recruit_type"))
+        employment_type = _map_recruit_type(item.get("recruit_type"))
 
         # ``job_category.en_name`` is the high-level area
         # ("Operations" / "Engineering"); ``job_subject.en_name`` is the
         # team/role family ("Project Intern" / "Software Engineer").
         department = _extract_label(item.get("job_category"))
-        team = _extract_label(item.get("job_subject"))
 
         # Use the employer-set ``code`` (e.g. "A205131") as the
         # requisition id when present; fall back to the numeric ats_id.
@@ -149,9 +148,7 @@ class TikTokCollector(BaseCollector):
             ats_id=ats_id,
             location=_extract_location(item),
             department=department,
-            team=team if team and team != department else None,
             employment_type=employment_type,
-            commitment=commitment,
             description=description,
             requisition_id=requisition_id,
             salary_min=_to_float(post_info.get("min_salary")),
@@ -193,21 +190,21 @@ def _extract_label(value: object) -> str | None:
     return None
 
 
-def _map_recruit_type(value: object) -> tuple[str | None, str | None]:
-    """Map ``recruit_type`` to ``(employment_type, commitment)``.
+def _map_recruit_type(value: object) -> str | None:
+    """Map ``recruit_type`` to the canonical employment-type enum.
 
     The API ships ``{"en_name": "Intern", "i18n_name": "Intern", ...}``.
-    We surface the human label in ``commitment`` and translate to the
-    canonical FT/PT/CONTRACT/INTERN/TEMPORARY enum.
+    We translate the human label to the canonical FT/PT/CONTRACT/INTERN/
+    TEMPORARY enum.
     """
     label = _extract_label(value)
     if not label:
-        return None, None
+        return None
     norm = label.lower()
     for needle, mapped in _EMPLOYMENT_TYPE_PATTERNS.items():
         if needle in norm:
-            return mapped, label
-    return None, label
+            return mapped
+    return None
 
 
 def _extract_location(item: dict[str, Any]) -> str | None:

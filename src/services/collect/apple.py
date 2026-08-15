@@ -173,10 +173,10 @@ class AppleCollector(BaseCollector):
         """Yield one ``Job`` per (Apple posting × location).
 
         Apple's search returns rich structured data — most fields the
-        old collector dropped. ``team`` is a dict (we want ``teamName``),
-        ``postDateInGMT`` is the real ISO timestamp (``postingDate`` is
-        the formatted display string), and ``jobSummary`` is the full
-        description body. ``homeOffice`` flags fully-remote roles.
+        old collector dropped. ``team`` is a dict, ``postDateInGMT`` is
+        the real ISO timestamp (``postingDate`` is the formatted display
+        string), and ``jobSummary`` is the full description body.
+        ``homeOffice`` flags fully-remote roles.
 
         Multi-location: when ``isMultiLocation`` is true (or the
         ``locations`` list has >1 entry), emit one row per location with
@@ -191,28 +191,17 @@ class AppleCollector(BaseCollector):
         # Description — full-text body Apple ships in every search hit.
         description = item.get("jobSummary") or None
 
-        # Team is a dict with teamName / teamID / teamCode. The label is
-        # the only thing that's user-meaningful for the dataset.
-        team = item.get("team")
-        team_label: str | None = None
-        if isinstance(team, dict):
-            team_label = team.get("teamName") or team.get("teamCode")
-        elif isinstance(team, str):
-            team_label = team
+        # Apple's only schedule signal is ``standardWeeklyHours``.
+        # 30+ → full-time; less → part-time.
+        hours = item.get("standardWeeklyHours")
+        employment_type: EmploymentType | None = None
+        if isinstance(hours, (int, float)) and hours > 0:
+            employment_type = "FULL_TIME" if hours >= 30 else "PART_TIME"
 
         # Apple ships ``postDateInGMT`` as an ISO timestamp; the
         # ``postingDate`` field is the formatted display string ("May
         # 06, 2026") and never parses as ISO.
         posted_at = _parse_iso(item.get("postDateInGMT")) or _parse_iso(item.get("postedDate"))
-
-        # Apple's only schedule signal is ``standardWeeklyHours``.
-        # 30+ → full-time; less → part-time.
-        hours = item.get("standardWeeklyHours")
-        employment_type: EmploymentType | None = None
-        commitment: str | None = None
-        if isinstance(hours, (int, float)) and hours > 0:
-            commitment = f"{int(hours)}h/week"
-            employment_type = "FULL_TIME" if hours >= 30 else "PART_TIME"
 
         # ``homeOffice`` is Apple's fully-remote flag. Some roles are
         # office-only (False), others remote (True), some neither
@@ -240,6 +229,7 @@ class AppleCollector(BaseCollector):
             v = item.get(k)
             if v not in (None, "", [], False):
                 raw_base[k] = v
+        team = item.get("team")
         if isinstance(team, dict):
             raw_base["team"] = team
 
@@ -259,10 +249,8 @@ class AppleCollector(BaseCollector):
                     ats_id=ats_id,
                     location=loc,
                     is_remote=is_remote,
-                    team=team_label,
                     description=description,
                     employment_type=employment_type,
-                    commitment=commitment,
                     requisition_id=req_id or position_id or None,
                     posted_at=posted_at,
                     fetched_at=datetime.now(tz=UTC),

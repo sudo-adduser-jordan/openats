@@ -301,7 +301,6 @@ class InfoJobsSpainCollector(BaseCollector):
             salary_min=salary_min,
             salary_max=salary_max,
             employment_type=employment_type,
-            commitment=contract_type_raw if isinstance(contract_type_raw, str) else None,
             description=description,
             posted_at=posted_at,
             fetched_at=datetime.now(tz=UTC),

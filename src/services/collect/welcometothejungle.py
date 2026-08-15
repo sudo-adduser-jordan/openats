@@ -206,10 +206,6 @@ class WTTJCollector(BaseCollector):
         ]
         location = ", ".join(p for p in location_parts if p) or None
 
-        geoloc = (hit.get("_geoloc") or [{}])[0] if hit.get("_geoloc") else {}
-        lat = geoloc.get("lat") if isinstance(geoloc, dict) else None
-        lon = geoloc.get("lng") if isinstance(geoloc, dict) else None
-
         salary_min = _to_float(hit.get("salary_minimum"))
         salary_max = _to_float(hit.get("salary_maximum"))
         # Fall back to the yearly-normalized values when only one is set.
@@ -246,8 +242,6 @@ class WTTJCollector(BaseCollector):
             ats_id=hit.get("reference") or hit.get("objectID", ""),
             location=location,
             language=self.language,
-            lat=lat,
-            lon=lon,
             is_remote=_remote_to_bool(hit.get("remote")),
             salary_currency=hit.get("salary_currency"),
             salary_period=SALARY_PERIOD_MAP.get(hit.get("salary_period") or "yearly", "YEAR"),
@@ -256,12 +250,8 @@ class WTTJCollector(BaseCollector):
             salary_summary=_compose_salary_summary(
                 salary_min, salary_max, hit.get("salary_currency")
             ),
-            experience=_to_int(hit.get("experience_level_minimum")),
             employment_type=CONTRACT_TYPE_MAP.get(hit.get("contract_type") or ""),
             department=department,
-            commitment=hit.get("contract_type")
-            if isinstance(hit.get("contract_type"), str)
-            else None,
             requisition_id=hit.get("reference") if isinstance(hit.get("reference"), str) else None,
             description=_compose_description(hit),
             posted_at=_parse_iso(hit.get("published_at")),
@@ -281,11 +271,6 @@ def _remote_to_bool(value: object) -> bool | None:
     if v in ("no", "none", ""):
         return False
     return None
-
-
-def _to_int(value: int | str | float) -> int | None:
-    f = _to_float(value)
-    return int(round(f)) if f is not None else None
 
 
 def _to_float(value: int | str | float) -> float | None:

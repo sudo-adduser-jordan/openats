@@ -224,7 +224,7 @@ def _watchlist_load(args: argparse.Namespace):
 
 
 def _watchlist_list(args: argparse.Namespace):
-    watchlist_dir = "data/parquet/watchlist"
+    watchlist_dir = "data/parquet/watchlists"
     parquets = sorted(glob.glob(os.path.join(watchlist_dir, "*.parquet")))
     if not parquets:
         print(f"No watchlist parquets found in {watchlist_dir}/")
@@ -304,7 +304,7 @@ def _load_database(args: argparse.Namespace):
     with database.connect() as connection:
         database.load_companies_from_parquet(connection)
         database.build_ats_from_companies(connection)
-        database.load_watchlists_dir(connection, "data/parquet/watchlist")
+        database.load_watchlists_dir(connection, "data/parquet/watchlists")
     print("Database loaded")
 
 

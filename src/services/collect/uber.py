@@ -204,9 +204,7 @@ class UberCollector(BaseCollector):
             ats_id=ats_id,
             location=location,
             department=item.get("department") if isinstance(item.get("department"), str) else None,
-            team=item.get("team") if isinstance(item.get("team"), str) else None,
             employment_type=employment_type,
-            commitment=commitment,
             description=description,
             requisition_id=ats_id if ats_id else None,
             posted_at=_parse_iso(

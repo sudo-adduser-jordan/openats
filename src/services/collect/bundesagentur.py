@@ -51,7 +51,7 @@ import httpx
 
 from exceptions import CollectorError
 from services._base import BaseCollector, CollectorRegistry, _json
-from services._helpers import as_url, as_url_or_none
+from services._helpers import as_url
 from services._helpers import parse_iso_datetime as _parse_iso
 from services._models import ATSType, EmploymentType, Job
 
@@ -522,13 +522,8 @@ class BundesagenturCollector(BaseCollector):
         # ``saison`` (Seasonal), ``ne`` (Nebenjob / side gig),
         # ``selb`` (Selbständig / self-employed). Map the canonical ones.
         arbeitszeit = item.get("arbeitszeit")
-        commitment: str | None = None
         employment_type: str | None = None
         if isinstance(arbeitszeit, str) and arbeitszeit.strip():
-            commitment = _ARBEITSZEIT_LABELS.get(
-                arbeitszeit.strip().lower(),
-                arbeitszeit.strip(),
-            )
             employment_type = _ARBEITSZEIT_TO_EMPLOYMENT_TYPE.get(
                 arbeitszeit.strip().lower(),
             )
@@ -550,14 +545,6 @@ class BundesagenturCollector(BaseCollector):
             berufsfeld.strip() if isinstance(berufsfeld, str) and berufsfeld.strip() else None
         )
 
-        # Industry / sector → ``team`` (the closest analog the API exposes).
-        branche = item.get("branche")
-        team = (
-            branche.strip()
-            if isinstance(branche, str) and branche.strip() and branche.strip() != department
-            else None
-        )
-
         raw: dict[str, Any] = {}
         for k in (
             "branche",
@@ -574,11 +561,6 @@ class BundesagenturCollector(BaseCollector):
             if v not in (None, ""):
                 raw[k] = v
 
-        externe_url = item.get("externeUrl")
-        apply_url = (
-            externe_url if isinstance(externe_url, str) and externe_url.startswith("http") else None
-        )
-
         return Job(
             url=as_url(url),
             title=title,
@@ -590,10 +572,7 @@ class BundesagenturCollector(BaseCollector):
             language="de",
             is_remote=is_remote,
             department=department,
-            team=team,
             employment_type=employment_type,
-            commitment=commitment,
-            apply_url=as_url_or_none(apply_url),
             requisition_id=item.get("hashId") or None,
             description=(
                 desc.strip()[:25_000]
@@ -610,16 +589,6 @@ class BundesagenturCollector(BaseCollector):
 
 # Bundesagentur's ``arbeitszeit`` is a single-letter-ish code; the
 # values are stable across the API surface.
-_ARBEITSZEIT_LABELS = {
-    "vz": "Vollzeit",
-    "tz": "Teilzeit",
-    "mj": "Minijob",
-    "ho": "Home office",
-    "saison": "Saisonarbeit",
-    "ne": "Nebenjob",
-    "selb": "Selbständig",
-    "snw": "Schicht/Nacht/Wochenende",
-}
 _ARBEITSZEIT_TO_EMPLOYMENT_TYPE: dict[str, EmploymentType] = {
     "vz": "FULL_TIME",
     "tz": "PART_TIME",

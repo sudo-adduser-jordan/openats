@@ -262,7 +262,6 @@ class GemCollector(BaseCollector):
             is_remote=_extract_is_remote(item.get("locations") or []),
             department=dept if isinstance(dept, str) else None,
             employment_type=employment_type,
-            commitment=emp_raw if isinstance(emp_raw, str) else None,
             posted_at=None,  # Filled by detail enrichment.
             fetched_at=datetime.now(tz=UTC),
             raw=raw or None,
@@ -297,9 +296,6 @@ def _apply_detail_to_job(job: Job, detail: dict[str, Any]) -> None:
         req = job_obj.get("requisitionId")
         if isinstance(req, str) and req.strip() and not job.requisition_id:
             job.requisition_id = req.strip()
-        team = job_obj.get("teamDisplayName")
-        if isinstance(team, str) and team.strip() and not job.team:
-            job.team = team.strip()
 
     comp_html = detail.get("compensationHtml")
     if isinstance(comp_html, str) and comp_html.strip() and not job.salary_summary:

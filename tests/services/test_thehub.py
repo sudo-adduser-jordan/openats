@@ -1,8 +1,7 @@
 """Tests for the The Hub (Nordic startup jobs) collector.
 
-Pin parsing of the rich The Hub payload — including geoLocation
-GeoJSON-style ``[lon, lat]`` coordinates (must swap to lat-first
-for our model) and the ``link`` field repurposed as ``apply_url``.
+Pin parsing of the rich The Hub payload — location, salary, remote
+flags, and the canonical ``thehub.io/jobs/{id}`` URL.
 """
 
 from __future__ import annotations
@@ -36,11 +35,9 @@ def _doc(
     country: str = "Denmark",
     country_code: str = "DK",
     is_remote: bool = False,
-    apply_url: str = "https://apply.workable.com/acme/j/ABC/",
     salary_range: dict[str, Any] | None = None,
     salary_label: str = "competitive",
     status: str = "ACTIVE",
-    coords: list[float] | None = None,
 ) -> dict[str, Any]:
     return {
         "id": job_id,
@@ -49,14 +46,10 @@ def _doc(
         "location": {"address": address, "locality": locality, "country": country},
         "countryCode": country_code,
         "isRemote": is_remote,
-        "link": apply_url,
         "salary": salary_label,
         "salaryRange": salary_range or {},
         "status": status,
         "publishedAt": "2026-04-08T10:43:28.000Z",
-        "geoLocation": {
-            "center": {"type": "Point", "coordinates": coords or [12.513321, 55.677069]},
-        },
         "description": "<p>Build things.</p>",
         "equity": "undisclosed",
         "jobRoles": ["role-1"],
@@ -84,9 +77,9 @@ def test_registry_resolves_thehub() -> None:
 # --- happy path -------------------------------------------------------------
 
 
-def test_parses_full_doc_with_geo_swap(httpx_mock) -> None:
-    """The Hub ships ``geoLocation.center.coordinates`` as GeoJSON
-    ``[lon, lat]``; our model uses lat-first. The collector must swap."""
+def test_parses_full_doc(httpx_mock) -> None:
+    """Pin the full The Hub payload parse — location, remote flag,
+    salary label handling, canonical URL."""
     httpx_mock.add_response(url=_API_RE, json=_envelope([_doc()]))
     j = TheHubCollector("any").fetch()[0]
     assert j.ats_type is ATSType.THEHUB
@@ -94,11 +87,7 @@ def test_parses_full_doc_with_geo_swap(httpx_mock) -> None:
     assert j.title == "Frontend Engineer"
     assert j.company == "Acme"
     assert j.location == "Frederiksberg, Denmark"
-    # GeoJSON [12.513, 55.677] → our model: lat=55.677, lon=12.513
-    assert j.lat == 55.677069
-    assert j.lon == 12.513321
     assert j.is_remote is False
-    assert str(j.apply_url) == "https://apply.workable.com/acme/j/ABC/"
     assert j.posted_at is not None
     assert j.description == "Build things."
     assert str(j.url) == "https://thehub.io/jobs/abc123"
@@ -199,22 +188,6 @@ def test_no_fanout_when_one_page(httpx_mock) -> None:
 
 
 # --- defensive --------------------------------------------------------------
-
-
-def test_empty_link_drops_apply_url_not_whole_job(httpx_mock) -> None:
-    """Some live The Hub postings ship ``link=''`` — the Pydantic
-    ``HttpUrl`` validator on Job.apply_url rejects empty strings, so
-    blindly passing the field crashes the whole collect. Regression
-    for the live-verify ValidationError."""
-    httpx_mock.add_response(url=_API_RE, json=_envelope([
-        _doc(job_id="empty-link", apply_url=""),
-        _doc(job_id="weird-link", apply_url="javascript:void(0)"),
-    ]))
-    jobs = TheHubCollector("any").fetch()
-    assert len(jobs) == 2
-    assert all(j.apply_url is None for j in jobs)
-
-
 def test_drops_doc_missing_id_or_title(httpx_mock) -> None:
     httpx_mock.add_response(url=_API_RE, json=_envelope([
         _doc(job_id="ok"),

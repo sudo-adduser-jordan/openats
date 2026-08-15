@@ -222,11 +222,8 @@ class WantedCollector(BaseCollector):
 
         location = _format_location(item.get("address") or {})
 
-        # ``annual_from`` / ``annual_to`` is the years-of-experience range,
-        # not a salary range — keep ``annual_from`` on the canonical
-        # ``experience`` field (minimum required years) and stash the
-        # max in ``raw`` so we don't lose the upper bound.
-        experience = _to_int(item.get("annual_from"))
+        # ``annual_to`` is the upper bound of the years-of-experience
+        # range; stash in ``raw`` so we don't lose it.
         annual_to = _to_int(item.get("annual_to"))
 
         # Posting timestamps: the v4 listing payload doesn't surface
@@ -257,7 +254,6 @@ class WantedCollector(BaseCollector):
             ats_type=ATSType.WANTED,
             ats_id=ats_id,
             location=location,
-            experience=experience,
             fetched_at=datetime.now(tz=UTC),
             raw=raw or None,
         )

@@ -135,7 +135,6 @@ class MetaCollector(BaseCollector):
                         ats_type=ATSType.META,
                         ats_id=str(job_id),
                         location=self._format_locations(entry.get("locations")),
-                        team=self._first(entry.get("teams")),
                         department=self._first(entry.get("sub_teams")),
                         description=self._description(entry),
                         fetched_at=fetched_at,

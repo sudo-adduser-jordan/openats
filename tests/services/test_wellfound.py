@@ -241,9 +241,9 @@ def test_dedupes_jobs_present_on_multiple_role_pages(httpx_mock) -> None:
 
 def test_parse_job_window_full_fields() -> None:
     """Wellfound emits one field per line. The window scanner should
-    bind salary / location / posted / experience by *shape* (dollar
-    sign, 'Remote' prefix, etc.), not by position — different roles
-    drop different fields."""
+    bind salary / location / posted by *shape* (dollar sign, 'Remote'
+    prefix, etc.), not by position — different roles drop different
+    fields; experience lines are skipped."""
     window = (
         "$290k – $370k\n\n"
         "San Francisco\n\n"
@@ -251,18 +251,17 @@ def test_parse_job_window_full_fields() -> None:
         "2 days ago\n\n"
         "2 days agoSave\n\nApply\n\n"
     )
-    loc, remote, lo, hi, posted, exp = _parse_job_window(window)
+    loc, remote, lo, hi, posted = _parse_job_window(window)
     assert loc == "San Francisco"
     assert remote is None  # no 'In office' / 'Remote' line
     assert (lo, hi) == (290_000, 370_000)
-    assert exp == 7
     assert posted is not None
 
 
 def test_parse_job_window_remote_only() -> None:
     """``Remote only • United States`` → is_remote=True, location='United States'."""
     window = "$80k – $130k\n\nRemote only • United States\n\nyesterday\n\n"
-    loc, remote, lo, hi, _posted, _ = _parse_job_window(window)
+    loc, remote, lo, hi, _posted = _parse_job_window(window)
     assert remote is True
     assert loc == "United States"
     assert (lo, hi) == (80_000, 130_000)
@@ -271,7 +270,7 @@ def test_parse_job_window_remote_only() -> None:
 def test_parse_job_window_no_salary_no_remote() -> None:
     """Cards with neither salary nor remote info — keep what's there."""
     window = "Boston\n\n3 days ago\n\n"
-    loc, remote, lo, hi, posted, _ = _parse_job_window(window)
+    loc, remote, lo, hi, posted = _parse_job_window(window)
     assert loc == "Boston"
     assert remote is None
     assert (lo, hi) == (None, None)
@@ -282,7 +281,7 @@ def test_posted_date_not_misclassified_as_location() -> None:
     """Regression for the live-run bug where 'yesterday' / '2 days ago'
     leaked into the location field."""
     window = "$100k – $150k\n\nyesterday\n\nyesterdaySave\n\nApply"
-    loc, _, _, _, posted, _ = _parse_job_window(window)
+    loc, _, _, _, posted = _parse_job_window(window)
     assert loc is None  # no real location in this window
     assert posted is not None
 

@@ -110,7 +110,6 @@ def test_parses_full_item(httpx_mock) -> None:
     assert j.title == "Senior Backend Engineer"
     assert j.is_remote is True
     assert j.location == "United States"
-    assert j.commitment == "Full-Time"
     assert j.description == "Build a thing."
     assert j.posted_at is not None
     assert j.raw is not None

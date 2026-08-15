@@ -41,7 +41,7 @@ import httpx
 
 from exceptions import CollectorError
 from services._base import BaseCollector, CollectorRegistry, _json
-from services._helpers import as_url, as_url_or_none
+from services._helpers import as_url
 from services._helpers import parse_iso_datetime as _parse_iso
 from services._models import ATSType, EmploymentType, Job
 
@@ -247,11 +247,6 @@ class AmazonCollector(BaseCollector):
         else:
             url = f"https://www.amazon.jobs/en/jobs/{req_id}"
 
-        # Apply URL — usually the same as ``url_next_step``, but
-        # ``account.amazon.jobs/jobs/{id}/apply`` form when Amazon promotes
-        # internal apply flow. Use whichever is more specific.
-        apply_url = item.get("urlNextStepApply") or url
-
         # Description: ``description_short`` is a 200-300 char teaser;
         # ``description`` is the full posting body. Keep the long one when
         # available because embeddings benefit from richer text.
@@ -286,7 +281,6 @@ class AmazonCollector(BaseCollector):
             or item.get("createdDate")
             or item.get("created_date")
         )
-        team_label = _extract_team_label(item)
         department = (
             item.get("job_category") or item.get("jobCategory") or item.get("teamCategory") or None
         )
@@ -339,12 +333,9 @@ class AmazonCollector(BaseCollector):
                     ats_id=ats_id,
                     location=loc,
                     department=department,
-                    team=team_label,
                     description=description,
-                    commitment=schedule,
                     employment_type=employment_type,
                     requisition_id=req_id or None,
-                    apply_url=as_url_or_none(apply_url if apply_url != url else None),
                     posted_at=posted_at,
                     fetched_at=datetime.now(tz=UTC),
                     raw=raw or None,
@@ -413,25 +404,6 @@ def _decode_locations(item: dict[str, object]) -> list[str]:
             seen.add(label)
             out.append(label)
     return out
-
-
-def _extract_team_label(item: dict[str, object]) -> str | None:
-    """Amazon publishes ``team`` two ways:
-    - ``job_family`` / ``jobFamily`` — a string label like
-      ``"Real Estate/Facilities"``.
-    - ``team`` — a dict whose ``label`` field is the same string but with
-      richer metadata.
-
-    Pick the string form when present; otherwise dig into the dict."""
-    s = item.get("job_family") or item.get("jobFamily")
-    if isinstance(s, str) and s.strip():
-        return s.strip()
-    team = item.get("team")
-    if isinstance(team, dict):
-        label = team.get("label") or team.get("title")
-        if isinstance(label, str) and label.strip():
-            return label.strip()
-    return None
 
 
 def _map_employment_type(

@@ -27,7 +27,7 @@ import httpx
 
 from exceptions import CollectorError
 from services._base import BaseCollector, CollectorRegistry, _json
-from services._helpers import as_url, as_url_or_none
+from services._helpers import as_url
 from services._models import ATSType, EmploymentType, Job
 
 if TYPE_CHECKING:
@@ -172,10 +172,6 @@ class YCombinatorCollector(BaseCollector):
 
         salary_min, salary_max, salary_currency = _parse_salary_range(item.get("salaryRange"))
 
-        # ``minExperience`` is "3+ years" / "5+ years" / "0 years" /
-        # ""; pull the leading number when present.
-        experience = _parse_min_experience(item.get("minExperience"))
-
         # ``type`` is "Full-time" / "Part-time" / "Internship" / "Contract"
         employment_type = _employment_from_type(item.get("type"))
 
@@ -183,11 +179,6 @@ class YCombinatorCollector(BaseCollector):
         # convert to an approximate absolute datetime so dataset
         # consumers have a recency signal even though it's fuzzy.
         posted_at = _parse_relative_age(item.get("createdAt"))
-
-        apply_raw = item.get("applyUrl")
-        apply_url: str | None = None
-        if isinstance(apply_raw, str) and apply_raw.startswith(("http://", "https://")):
-            apply_url = apply_raw
 
         raw: dict[str, Any] = {}
         for key in (
@@ -219,13 +210,10 @@ class YCombinatorCollector(BaseCollector):
             salary_period="YEAR" if salary_currency else None,
             salary_min=salary_min,
             salary_max=salary_max,
-            experience=experience,
             employment_type=employment_type,
-            commitment=item.get("type") if isinstance(item.get("type"), str) else None,
             department=(
                 item.get("prettyRole") if isinstance(item.get("prettyRole"), str) else None
             ),
-            apply_url=as_url_or_none(apply_url),
             description=description,
             posted_at=posted_at,
             fetched_at=datetime.now(tz=UTC),
@@ -412,16 +400,6 @@ def _scale_amount(num: str, suffix: str | None) -> float | None:
     if s == "m":
         return v * 1_000_000
     return v
-
-
-_EXPERIENCE_RE = re.compile(r"^\s*(\d+)")
-
-
-def _parse_min_experience(raw: object) -> int | None:
-    if not isinstance(raw, str):
-        return None
-    m = _EXPERIENCE_RE.match(raw)
-    return int(m.group(1)) if m else None
 
 
 _TYPE_TO_EMPLOYMENT: dict[str, EmploymentType] = {

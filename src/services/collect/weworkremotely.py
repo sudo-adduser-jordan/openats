@@ -157,7 +157,6 @@ class WeWorkRemotelyCollector(BaseCollector):
             (strip_html(raw_desc)[:25_000] or None) if raw_desc and raw_desc.strip() else None
         )
         posted_at = _parse_pubdate(item.findtext("pubDate"))
-        commitment = (item.findtext("type") or "").strip() or None
 
         raw: dict[str, Any] = {}
         skills = (item.findtext("skills") or "").strip()
@@ -180,7 +179,6 @@ class WeWorkRemotelyCollector(BaseCollector):
             ats_id=guid,
             location=location,
             is_remote=True,  # WWR is, by definition, remote-only.
-            commitment=commitment,
             description=description,
             posted_at=posted_at,
             fetched_at=datetime.now(tz=UTC),

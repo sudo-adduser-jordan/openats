@@ -268,7 +268,6 @@ class GetOnBrdCollector(BaseCollector):
 
         modality_id = str(((attrs.get("modality") or {}).get("data") or {}).get("id") or "")
         modality_attrs = modalities.get(modality_id) or {}
-        commitment = modality_attrs.get("name")
         employment_type = _MODALITY_MAP.get((modality_attrs.get("locale_key") or "").lower())
 
         description = strip_html(_concat_descriptions(attrs))[:25_000]
@@ -306,7 +305,6 @@ class GetOnBrdCollector(BaseCollector):
             salary_min=salary_min,
             salary_max=salary_max,
             employment_type=employment_type,
-            commitment=commitment,
             department=attrs.get("category_name"),
             description=description,
             posted_at=_unix_to_dt(attrs.get("published_at")),

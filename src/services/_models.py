@@ -169,14 +169,14 @@ class Job(BaseModel):
        ``ats_type``, ``ats_id``). What the row *is*.
 
     2. **Location** (``location``, ``country_iso``, ``region``,
-       ``lat``, ``lon``, ``is_remote``). Where the role lives.
+       ``is_remote``). Where the role lives.
        ``is_remote`` is *narrowly* inferred from the ``title`` by
        ``openats.enrichment.infer_is_remote`` when the ATS doesn't
        surface a flag — it only ever returns ``True`` (never
        ``False``) so the absence of a marker doesn't get mis-classified
-       as on-site. ``country_iso`` / ``region`` / ``lat`` / ``lon``
+       as on-site. ``country_iso`` / ``region``
        are collector-set when the source exposes them, otherwise filled
-       by the downstream LLM enrichment pass / a geocoding service.
+       by the downstream LLM enrichment pass.
 
     3. **Compensation** (``salary_currency``, ``salary_period``,
        ``salary_summary``, ``salary_min``, ``salary_max``).
@@ -184,10 +184,9 @@ class Job(BaseModel):
        ``salary_summary`` via ``openats.enrichment.parse_salary_range``
        when the ATS exposes only free text.
 
-    4. **Classification** (``experience``, ``employment_type``,
-       ``department``, ``team``, ``requisition_id``, ``apply_url``,
-       ``commitment``). Optional — set when the source API exposes
-       them, ``None`` otherwise.
+    4. **Classification** (``employment_type``,
+       ``department``, ``requisition_id``). Optional — set when the
+       source API exposes them, ``None`` otherwise.
 
     5. **Content & timing** (``description``, ``posted_at``,
        ``fetched_at``, ``language``). ``language`` is the listing's
@@ -314,22 +313,6 @@ class Job(BaseModel):
             "level."
         ),
     )
-    lat: float | None = Field(
-        default=None,
-        description=(
-            "Latitude in WGS-84 degrees when the ATS provides "
-            "geocoded coordinates (rare — most don't). Not derived "
-            "from ``location`` text. A future geocoding service is "
-            "expected to fill this for rows where the collector leaves "
-            "it ``None``."
-        ),
-    )
-    lon: float | None = Field(
-        default=None,
-        description=(
-            "Longitude in WGS-84 degrees. See ``lat`` notes — populated together or not at all."
-        ),
-    )
     is_remote: bool | None = Field(
         default=None,
         description=(
@@ -390,37 +373,19 @@ class Job(BaseModel):
 
     # --- Classification ---------------------------------------------------
 
-    experience: int | None = Field(
-        default=None,
-        description=(
-            "Required years of experience as an integer when the ATS "
-            "exposes a structured value. ``None`` when missing or "
-            "only described in prose."
-        ),
-    )
     employment_type: EmploymentType | None = Field(
         default=None,
         description=(
             "Normalized employment type — one of ``FULL_TIME``, "
             "``PART_TIME``, ``CONTRACT``, ``INTERN``, ``TEMPORARY``. "
-            "Cross-ATS comparable; use this for filtering. The "
-            "ATS-specific raw label lives in ``commitment``."
+            "Cross-ATS comparable; use this for filtering."
         ),
     )
     department: str | None = Field(
         default=None,
         description=(
             "High-level org grouping (``Engineering``, ``Sales``, "
-            "``Marketing``, …) when the ATS surfaces it. Distinct "
-            "from ``team`` which is finer-grained."
-        ),
-    )
-    team: str | None = Field(
-        default=None,
-        description=(
-            "Sub-team / squad within the department (``Reality "
-            "Labs``, ``Payments Infra``, …). Often empty even when "
-            "``department`` is set."
+            "``Marketing``, …) when the ATS surfaces it."
         ),
     )
     requisition_id: str | None = Field(
@@ -435,28 +400,6 @@ class Job(BaseModel):
             "signal."
         ),
     )
-    apply_url: HttpUrl | None = Field(
-        default=None,
-        description=(
-            "Direct application URL when distinct from the posting "
-            "``url``. Some ATSes (Workable widget, Bundesagentur "
-            "external boards, YC's workatastartup) redirect to a "
-            "separate apply destination."
-        ),
-    )
-    commitment: str | None = Field(
-        default=None,
-        description=(
-            "Free-form commitment label from the source ATS (Lever's "
-            "``commitment``, Workable's ``type``, Bundesagentur's "
-            "``arbeitszeit`` description, ``CDI``/``CDD``, ``Heltid``, "
-            "``32h/week``, …). Distinct from ``employment_type`` which "
-            "is the normalized enum — keep ``commitment`` to preserve "
-            "language and granularity (hours, contract length, …) the "
-            "enum loses."
-        ),
-    )
-
     # --- Content & timing -------------------------------------------------
 
     description: str | None = Field(

@@ -129,8 +129,6 @@ class AshbyCollector(BaseCollector):
             description=description,
             employment_type=employment_type,
             department=item.get("department") if isinstance(item.get("department"), str) else None,
-            team=item.get("team") if isinstance(item.get("team"), str) else None,
-            apply_url=item.get("applyUrl") if item.get("applyUrl") != item.get("jobUrl") else None,
             salary_currency=currency,
             salary_period=period,
             salary_summary=summary,

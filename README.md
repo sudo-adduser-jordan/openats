@@ -15,11 +15,11 @@ git clone; uv sync
 
 ```
 global_id, url, title, company, ats_type, ats_id,
-location, country_iso, region, is_remote, lat, lon,
-salary_min, salary_max, salary_currency, salary_period, salary_summary,
-employment_type, commitment, experience, department, team,
+location, country_iso, region, is_remote,
+salary_currency, salary_period, salary_summary, salary_min, salary_max,
+employment_type, department, requisition_id,
 description, posted_at, fetched_at, language,
-requisition_id, apply_url, raw
+raw
 ```
 
 ## Collectors

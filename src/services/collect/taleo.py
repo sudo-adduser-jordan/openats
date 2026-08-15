@@ -215,8 +215,6 @@ def _apply_jsonld_to_job(job: Job, html_text: str) -> None:
             if needle in norm:
                 job.employment_type = mapped
                 break
-        if not job.commitment:
-            job.commitment = emp.strip()
 
     if not job.posted_at:
         date_raw = posting.get("datePosted")

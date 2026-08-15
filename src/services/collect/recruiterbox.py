@@ -205,10 +205,6 @@ class RecruiterboxCollector(BaseCollector):
             location=_format_location(item.get("location")),
             is_remote=is_remote,
             employment_type=_TYPE_MAP.get((item.get("position_type") or "").lower()),
-            team=item.get("team") or None,
-            commitment=item.get("position_type")
-            if isinstance(item.get("position_type"), str)
-            else None,
             description=_html_unescape_for_desc(item.get("description")),
             posted_at=_parse_iso(item.get("created_on") or item.get("updated_on")),
             fetched_at=datetime.now(tz=UTC),

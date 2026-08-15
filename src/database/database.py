@@ -26,21 +26,15 @@ CREATE TABLE IF NOT EXISTS jobs (
     location TEXT,
     country_iso TEXT,
     region TEXT,
-    lat REAL,
-    lon REAL,
     is_remote INTEGER,
     salary_currency TEXT,
     salary_period TEXT,
     salary_summary TEXT,
     salary_min REAL,
     salary_max REAL,
-    experience INTEGER,
     employment_type TEXT,
     department TEXT,
-    team TEXT,
     requisition_id TEXT,
-    apply_url TEXT,
-    commitment TEXT,
     description TEXT,
     posted_at TEXT,
     fetched_at TEXT,
@@ -719,21 +713,15 @@ CREATE TABLE IF NOT EXISTS jobs_recent (
     location TEXT,
     country_iso TEXT,
     region TEXT,
-    lat REAL,
-    lon REAL,
     is_remote INTEGER,
     salary_currency TEXT,
     salary_period TEXT,
     salary_summary TEXT,
     salary_min REAL,
     salary_max REAL,
-    experience INTEGER,
     employment_type TEXT,
     department TEXT,
-    team TEXT,
     requisition_id TEXT,
-    apply_url TEXT,
-    commitment TEXT,
     description TEXT,
     posted_at TEXT,
     fetched_at TEXT,
@@ -749,11 +737,11 @@ WHEN NEW.posted_at IS NOT NULL AND NEW.posted_at >= replace(datetime('now', '-24
 BEGIN
     INSERT OR IGNORE INTO jobs_recent VALUES (
         NEW.global_id, NEW.url, NEW.title, NEW.company, NEW.ats_type,
-        NEW.ats_id, NEW.location, NEW.country_iso, NEW.region, NEW.lat,
-        NEW.lon, NEW.is_remote, NEW.salary_currency, NEW.salary_period,
-        NEW.salary_summary, NEW.salary_min, NEW.salary_max, NEW.experience,
-        NEW.employment_type, NEW.department, NEW.team, NEW.requisition_id,
-        NEW.apply_url, NEW.commitment, NEW.description, NEW.posted_at,
+        NEW.ats_id, NEW.location, NEW.country_iso, NEW.region,
+        NEW.is_remote, NEW.salary_currency, NEW.salary_period,
+        NEW.salary_summary, NEW.salary_min, NEW.salary_max,
+        NEW.employment_type, NEW.department, NEW.requisition_id,
+        NEW.description, NEW.posted_at,
         NEW.fetched_at, NEW.language, NEW.raw
     );
 END;
@@ -769,11 +757,11 @@ BEGIN
 
     INSERT OR REPLACE INTO jobs_recent
     SELECT NEW.global_id, NEW.url, NEW.title, NEW.company, NEW.ats_type,
-           NEW.ats_id, NEW.location, NEW.country_iso, NEW.region, NEW.lat,
-           NEW.lon, NEW.is_remote, NEW.salary_currency, NEW.salary_period,
-           NEW.salary_summary, NEW.salary_min, NEW.salary_max, NEW.experience,
-           NEW.employment_type, NEW.department, NEW.team, NEW.requisition_id,
-           NEW.apply_url, NEW.commitment, NEW.description, NEW.posted_at,
+           NEW.ats_id, NEW.location, NEW.country_iso, NEW.region,
+           NEW.is_remote, NEW.salary_currency, NEW.salary_period,
+           NEW.salary_summary, NEW.salary_min, NEW.salary_max,
+           NEW.employment_type, NEW.department, NEW.requisition_id,
+           NEW.description, NEW.posted_at,
            NEW.fetched_at, NEW.language, NEW.raw
     WHERE NEW.posted_at IS NOT NULL AND NEW.posted_at >= replace(datetime('now', '-24 hours'), ' ', 'T');
 END;
@@ -847,7 +835,7 @@ INSERT_COMPANIES_BATCH_TEMPLATE = (
 SELECT_COMPANIES_SLUG_URL = "SELECT slug, url FROM companies WHERE url IS NOT NULL AND url != ''"
 
 # --- URL validation ---
-SELECT_JOBS_FOR_VALIDATION = "SELECT global_id, url, apply_url, title FROM jobs"
+SELECT_JOBS_FOR_VALIDATION = "SELECT global_id, url, title FROM jobs"
 SELECT_COMPANIES_FOR_VALIDATION = "SELECT rowid, name, slug, url FROM companies WHERE url IS NOT NULL AND url != '' ORDER BY RANDOM()"
 DELETE_JOBS_BATCH_TEMPLATE = "DELETE FROM jobs WHERE global_id IN ({})"
 
@@ -863,21 +851,15 @@ class Database:
         "location",
         "country_iso",
         "region",
-        "lat",
-        "lon",
         "is_remote",
         "salary_currency",
         "salary_period",
         "salary_summary",
         "salary_min",
         "salary_max",
-        "experience",
         "employment_type",
         "department",
-        "team",
         "requisition_id",
-        "apply_url",
-        "commitment",
         "description",
         "posted_at",
         "fetched_at",
@@ -1201,7 +1183,7 @@ class Database:
             failed_ids: list[str] = []
 
             def _check(row: tuple) -> tuple[bool, str | None]:
-                _gid, url, apply_url, title = row
+                _gid, url, title = row
                 try:
                     resp_head = httpx.head(url, timeout=10.0, follow_redirects=True)
                     if not resp_head.is_success:
@@ -1212,11 +1194,6 @@ class Database:
                         return (False, f"GET {resp_get.status_code}")
                     if title.lower() not in resp_get.text.lower():
                         return (False, "title not found in page body")
-
-                    if apply_url and apply_url != url:
-                        resp_apply = httpx.head(apply_url, timeout=10.0, follow_redirects=True)
-                        if not resp_apply.is_success:
-                            return (False, f"apply_url HEAD {resp_apply.status_code}")
 
                     return (True, None)
                 except Exception as exc:
@@ -1229,16 +1206,16 @@ class Database:
                     ok, reason = fut.result()
                     if ok:
                         passed += 1
-                        print(f"[{count}/{total}] [OK] {row[3]} — {row[1]}")
+                        print(f"[{count}/{total}] [OK] {row[2]} — {row[1]}")
                     else:
                         failed += 1
                         failed_ids.append(row[0])
-                        print(f"[{count}/{total}] [FAIL] {row[3]} — {row[1]} ({reason})")
+                        print(f"[{count}/{total}] [FAIL] {row[2]} — {row[1]} ({reason})")
                         logger.error(
                             operation="validate_job_urls_failure",
                             global_id=row[0],
                             url=row[1],
-                            title=row[3],
+                            title=row[2],
                             reason=reason or "unknown",
                         )
 

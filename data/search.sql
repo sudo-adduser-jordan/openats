@@ -1,7 +1,6 @@
 SELECT 
 "url",
 "company",
-"apply_url",
 "title",
 "location",
 "is_remote"

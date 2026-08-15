@@ -324,7 +324,6 @@ class ProgramathorCollector(BaseCollector):
         contract_raw = strip_html(_extract(body, _CONTRACT_RE))
 
         employment_type = _EMPLOYMENT_MAP.get(contract_raw.lower()) if contract_raw else None
-        commitment = contract_raw or None
 
         # Salary parsing — Programathor uses "Até R$5.000", "R$3.000 - R$5.000",
         # "A combinar". Capture min/max when explicit, currency BRL when present.
@@ -358,7 +357,6 @@ class ProgramathorCollector(BaseCollector):
             salary_min=salary_min,
             salary_max=salary_max,
             employment_type=employment_type,
-            commitment=commitment,
             fetched_at=datetime.now(tz=UTC),
             raw=raw or None,
         )

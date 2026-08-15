@@ -40,7 +40,6 @@ SAMPLE_HIT = {
     "salary_yearly_minimum": 120000,
     "remote": "partial",
     "has_remote": True,
-    "_geoloc": [{"lat": 48.8566, "lng": 2.3522}],
     "offices": [{"city": "Paris", "state": "Île-de-France", "country": "France"}],
     "sectors": [{"name": "Software", "reference": "software"}],
     "key_missions": ["Build models", "Deploy to prod", "Mentor juniors"],
@@ -62,25 +61,14 @@ def test_wttj_per_org_parses_full_payload(httpx_mock) -> None:
     assert job.title == "Senior ML Engineer"
     assert job.company == "OpenAI France"
     assert job.location == "Paris, Île-de-France, France"
-    assert job.lat == pytest.approx(48.8566)
-    assert job.lon == pytest.approx(2.3522)
     assert job.salary_min == 120_000
     assert job.salary_max == 180_000
     assert job.salary_currency == "EUR"
     assert job.salary_period == "YEAR"
     assert job.employment_type == "FULL_TIME"
     assert job.is_remote is True  # `partial` counts as remote-friendly
-    assert job.experience == 3
     assert job.department == "Software"
     assert job.description and "Build models" in job.description
-
-
-def test_wttj_handles_fractional_experience(httpx_mock) -> None:
-    """Regression: WTTJ returns experience as floats like 0.5."""
-    hit = {**SAMPLE_HIT, "experience_level_minimum": 0.5}
-    httpx_mock.add_response(url=MAIN_URL, json={"hits": [hit]})
-    jobs = WTTJCollector("openai").fetch()
-    assert jobs[0].experience == 0  # rounded to int
 
 
 def test_wttj_full_walk_uses_sorted_replica(httpx_mock) -> None:

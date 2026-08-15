@@ -35,7 +35,7 @@ import httpx
 
 from exceptions import CollectorError, CompanyNotFoundError
 from services._base import BaseCollector, CollectorRegistry
-from services._helpers import as_url, as_url_or_none
+from services._helpers import as_url
 from services._helpers import parse_iso_datetime as _parse_iso
 from services._models import ATSType, EmploymentType, Job
 from utils.countries import _COUNTRY_NAME_TO_ISO
@@ -161,7 +161,6 @@ class WorkableCollector(BaseCollector):
 
     def _parse_job(self, item: dict[str, Any]) -> Job:
         url = item.get("url") or item.get("application_url")
-        apply_url = item.get("application_url")
         # Workable's "type" mirrors employment shape (full-time, contract, etc.)
         commitment_raw = item.get("type") or item.get("employment_type")
         commitment = (
@@ -213,10 +212,6 @@ class WorkableCollector(BaseCollector):
             is_remote=is_remote,
             department=item.get("department") if isinstance(item.get("department"), str) else None,
             employment_type=employment_type,
-            commitment=commitment,
-            apply_url=as_url_or_none(
-                apply_url if isinstance(apply_url, str) and apply_url != url else None
-            ),
             posted_at=_parse_iso(item.get("published_on") or item.get("created_at")),
             fetched_at=datetime.now(tz=UTC),
             raw=raw or None,

@@ -54,7 +54,6 @@ def test_parses_primary_response_shape() -> None:
     assert job.title == "Software Engineer, Reality Labs"
     assert str(job.url) == "https://www.metacareers.com/jobs/1234567890/"
     assert job.location == "Menlo Park, CA, Seattle, WA"
-    assert job.team == "Engineering"
     assert job.department == "Reality Labs"
 
 

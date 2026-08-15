@@ -13,7 +13,7 @@ These tests pin:
 1. JSON API parsing (fields: listingId, title, companyName, etc.)
 2. URL composition: ``work.mercor.com/jobs/{id}/{slug}``
 3. Salary period mapping from ``payRateFrequency``
-4. Employment type mapping from ``commitment``
+4. Employment type pinned to CONTRACT for every listing
 5. Description truncation
 6. Retry behaviour
 """
@@ -190,7 +190,7 @@ def test_salary_currency_only_set_when_rates_present(httpx_mock) -> None:
     assert jobs[0].salary_currency is None
 
 
-# --- employment_type / commitment -------------------------------------------
+# --- employment_type --------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -202,30 +202,13 @@ def test_employment_type_is_always_contract(
 ) -> None:
     """Mercor is a contract talent marketplace — every listing is a
     contract role regardless of the rate frequency exposed in the
-    API's ``commitment`` field. We default ``employment_type`` to
-    ``CONTRACT`` and surface the rate-frequency label in
-    ``commitment`` for display."""
+    API's ``commitment`` field. ``employment_type`` defaults to
+    ``CONTRACT``; the rate frequency is stashed in ``raw``."""
     httpx_mock.add_response(url=URL, json={"listings": [
         _listing(commitment=commitment),
     ]})
     jobs = MercorCollector("any").fetch()
     assert jobs[0].employment_type == "CONTRACT"
-
-
-def test_commitment_label_includes_hours_per_week(httpx_mock) -> None:
-    httpx_mock.add_response(url=URL, json={"listings": [
-        _listing(commitment="hourly", hoursPerWeek=40),
-    ]})
-    jobs = MercorCollector("any").fetch()
-    assert jobs[0].commitment == "Hourly · 40h/week"
-
-
-def test_commitment_label_without_hours(httpx_mock) -> None:
-    httpx_mock.add_response(url=URL, json={"listings": [
-        _listing(commitment="hourly"),
-    ]})
-    jobs = MercorCollector("any").fetch()
-    assert jobs[0].commitment == "Hourly"
 
 
 # --- Description -----------------------------------------------------------

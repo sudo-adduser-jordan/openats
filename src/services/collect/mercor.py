@@ -120,18 +120,8 @@ def _parse_listing(item: dict[str, Any]) -> Job | None:
     # contract role regardless of the rate frequency. ``commitment``
     # in the Mercor API is the rate frequency (``hourly`` / ``weekly``
     # / etc.), not an employment-type label, so default to CONTRACT
-    # and surface the rate frequency in ``commitment`` for display.
+    # and stash the rate frequency in ``raw`` for display.
     employment_type: EmploymentType = "CONTRACT"
-    commitment_raw = item.get("commitment")
-    commitment: str | None = None
-    if isinstance(commitment_raw, str) and commitment_raw.strip():
-        # Normalise "hourly" → "Hourly" for display; downstream UI
-        # likes title-case labels.
-        commitment = commitment_raw.strip().capitalize()
-    hours = item.get("hoursPerWeek")
-    if isinstance(hours, (int, float)) and hours > 0:
-        # Append hours/week to the commitment label when present.
-        commitment = f"{commitment} · {int(hours)}h/week" if commitment else f"{int(hours)}h/week"
 
     # ``workArrangement`` is the canonical remote/hybrid/onsite signal.
     # ``location`` text often duplicates it ("Remote") so we set
@@ -181,7 +171,6 @@ def _parse_listing(item: dict[str, Any]) -> Job | None:
         salary_period=salary_period,
         salary_summary=salary_summary,
         employment_type=employment_type,
-        commitment=commitment,
         description=description,
         posted_at=_parse_iso(item.get("postedAt")),
         fetched_at=datetime.now(tz=UTC),

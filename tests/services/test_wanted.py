@@ -50,11 +50,11 @@ def _job(
     location: str = "서울",
     country_kor: str = "한국",
     district: str = "중구",
-    full_location: str = "서울 중구 신당동 340-44",
-    annual_from: int | None = 4,
+    full_location: str = "중구, 서울, 한국",
     annual_to: int | None = 6,
     category_tags: list[dict[str, int]] | None = None,
 ) -> dict[str, Any]:
+    """Return a single wanted.co.kr job payload."""
     return {
         "id": job_id,
         "position": position,
@@ -73,7 +73,6 @@ def _job(
             "name": company_name,
             "industry_name": industry,
         },
-        "annual_from": annual_from,
         "annual_to": annual_to,
         "category_tags": category_tags or [{"parent_id": 517, "id": 643}],
         "logo_img": {"origin": "x", "thumb": "y"},
@@ -124,7 +123,6 @@ def test_parses_full_v4_job_payload(httpx_mock) -> None:
     # Location is district-first, then city, then country (Wanted's KR
     # listings ship Korean strings — keep them verbatim).
     assert j.location == "중구, 서울, 한국"
-    assert j.experience == 4  # annual_from
     assert j.description == "Build hiring products.\n\nOwn the platform.\n\nPython experience."
     assert j.raw is not None
     assert j.raw.get("annual_to") == 6

@@ -196,7 +196,6 @@ class PinpointCollector(BaseCollector):
             is_remote=_extract_is_remote(item.get("workplace_type")),
             employment_type=_map_employment_type(item.get("employment_type")),
             department=department,
-            commitment=item.get("schedule") if isinstance(item.get("schedule"), str) else None,
             requisition_id=item.get("reference")
             if isinstance(item.get("reference"), str)
             else None,

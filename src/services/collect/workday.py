@@ -535,7 +535,6 @@ class WorkdayCollector(BaseCollector):
             location=item.get("locationsText"),
             is_remote=is_remote,
             employment_type=employment_type,
-            commitment=commitment,
             department=department,
             requisition_id=requisition_id,
             posted_at=_parse_workday_date(item.get("postedOn")),

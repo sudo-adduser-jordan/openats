@@ -315,13 +315,10 @@ class OracleCollector(BaseCollector):
         # Employment type — try a chain of fields, mapping each through
         # the freeform-vocabulary table.
         employment_type: str | None = None
-        commitment: str | None = None
         for key in ("WorkerType", "JobType", "ContractType", "JobSchedule"):
             v = item.get(key)
             if isinstance(v, str) and v.strip():
                 norm = v.strip().lower()
-                if commitment is None:
-                    commitment = v.strip()
                 if employment_type is None:
                     for needle, mapped in _EMPLOYMENT_TYPE_PATTERNS.items():
                         if needle in norm:
@@ -336,10 +333,6 @@ class OracleCollector(BaseCollector):
             item.get("RequisitionNumber") or item.get("RequisitionId") or item.get("ReqNumber")
         )
         requisition_id = str(req_raw).strip() if req_raw else None
-
-        # Team — JobFamily is the closest analog when it's a string.
-        team_raw = item.get("JobFamilyName") or item.get("JobFamily")
-        team = team_raw.strip() if isinstance(team_raw, str) and team_raw.strip() else None
 
         raw: dict[str, Any] = {}
         for k in (
@@ -379,9 +372,7 @@ class OracleCollector(BaseCollector):
             location=item.get("PrimaryLocation"),
             is_remote=is_remote,
             department=department,
-            team=team,
             employment_type=employment_type,
-            commitment=commitment,
             description=description,
             requisition_id=requisition_id,
             posted_at=_parse_iso(item.get("PostedDate") or item.get("CreatedOn")),

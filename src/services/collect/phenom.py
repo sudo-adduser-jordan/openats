@@ -357,12 +357,11 @@ class PhenomCollector(BaseCollector):
                 if norm in ("onsite", "on-site", "in-office", "in office", "office"):
                     is_remote = False
 
-        # Map ``jobType`` to the canonical ``employment_type`` enum;
-        # keep the original label in ``commitment`` for display.
-        commitment = item.get("jobType") if isinstance(item.get("jobType"), str) else None
+        # Map ``jobType`` to the canonical ``employment_type`` enum.
+        job_type = item.get("jobType") if isinstance(item.get("jobType"), str) else None
         employment_type: str | None = None
-        if commitment:
-            norm = commitment.strip().lower()
+        if job_type:
+            norm = job_type.strip().lower()
             for needle, mapped in _EMPLOYMENT_TYPE_PATTERNS.items():
                 if needle in norm:
                     employment_type = mapped
@@ -378,7 +377,6 @@ class PhenomCollector(BaseCollector):
             is_remote=is_remote,
             department=item.get("department") or item.get("category"),
             employment_type=employment_type,
-            commitment=commitment,
             requisition_id=str(item.get("jobSeqNo")) if item.get("jobSeqNo") else None,
             # Prefer the full ``description`` field. ``descriptionTeaser`` is
             # a short marketing summary (typically 1-2 sentences) and was

@@ -237,7 +237,6 @@ class CornerstoneCollector(BaseCollector):
             ats_type=ATSType.CORNERSTONE,
             ats_id=ats_id,
             location=_format_locations(item.get("locations")),
-            commitment=item.get("schedule") if isinstance(item.get("schedule"), str) else None,
             requisition_id=ats_id if ats_id else None,
             description=_clean_external_desc(item.get("externalDescription")),
             posted_at=_parse_iso(item.get("postingEffectiveDate")),

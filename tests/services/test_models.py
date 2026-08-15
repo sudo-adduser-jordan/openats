@@ -188,11 +188,6 @@ def test_job_round_trips_through_model_dump() -> None:
     assert restored.salary_min == 100_000
 
 
-def test_job_lat_lon_optional() -> None:
-    job = _minimal_job(lat=37.7749, lon=-122.4194)
-    assert job.lat == pytest.approx(37.7749)
-
-
 # --- Job.global_id -----------------------------------------------------------
 #
 # The global_id is the cross-ATS unique identifier for a posting.

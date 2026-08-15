@@ -4,7 +4,7 @@ The Hub is the leading direct-posting tech / startup job platform
 for the Nordics (DK, SE, NO, FI). Companies pay to list — not
 syndicated from LinkedIn / Indeed. ~1,000 active postings at any one
 time, all developer- or growth-focused, all with structured
-location + lat/lon + apply URL data.
+location data.
 
 Public REST at ``https://thehub.io/api/jobs`` — no auth, no key.
 Pagination via ``?page=N`` (15 docs per page; page count is in the
@@ -23,7 +23,7 @@ import httpx
 
 from exceptions import CollectorError
 from services._base import BaseCollector, CollectorRegistry, _json
-from services._helpers import as_url, as_url_or_none, strip_html
+from services._helpers import as_url, strip_html
 from services._helpers import parse_iso_datetime as _parse_iso
 from services._models import ATSType, Job
 
@@ -170,8 +170,6 @@ class TheHubCollector(BaseCollector):
         location_obj = item.get("location") or {}
         location = _format_location(location_obj)
 
-        lat, lon = _extract_lat_lon(item.get("geoLocation") or {})
-
         is_remote = bool(item.get("isRemote"))
         raw_desc = item.get("description")
         description = (
@@ -183,16 +181,7 @@ class TheHubCollector(BaseCollector):
             item.get("publishedAt") or item.get("approvedAt") or item.get("createdAt")
         )
 
-        # The Hub's ``link`` field is the apply URL (often a Workable /
-        # Greenhouse / etc. handoff). Keep the ``thehub.io/jobs/{id}``
-        # canonical URL as the primary url; stash apply elsewhere.
-        # Some postings ship link='' — must reject those before the
-        # Pydantic HttpUrl validator does (it rejects empty strings).
-        apply_raw = item.get("link")
-        apply_url = apply_raw.strip() if isinstance(apply_raw, str) else None
-        if not apply_url or not apply_url.startswith(("http://", "https://")):
-            apply_url = None
-
+        # Some postings ship link='' — canonical URL is ``thehub.io/jobs/{id}``.
         # Salary: API ships either a string ('competitive', 'undisclosed')
         # or a salaryRange object. We only set the canonical fields when
         # we have numeric values.
@@ -226,14 +215,11 @@ class TheHubCollector(BaseCollector):
             ats_id=ats_id,
             location=location,
             country_iso=country_iso,
-            lat=lat,
-            lon=lon,
             is_remote=is_remote,
             salary_currency=salary_currency,
             salary_period="YEAR" if salary_currency else None,
             salary_min=salary_min,
             salary_max=salary_max,
-            apply_url=as_url_or_none(apply_url),
             description=description,
             posted_at=posted_at,
             fetched_at=datetime.now(tz=UTC),
@@ -252,21 +238,6 @@ def _format_location(loc: dict[str, Any]) -> str | None:
     ]
     parts = [p for p in parts if p]
     return ", ".join(parts) or None
-
-
-def _extract_lat_lon(geo: dict[str, Any]) -> tuple[float | None, float | None]:
-    """``geoLocation.center.coordinates`` is GeoJSON: ``[lon, lat]`` —
-    GeoJSON uses lon-first, our model uses lat-first. Swap on return."""
-    center = geo.get("center") or {}
-    coords = center.get("coordinates") if isinstance(center, dict) else None
-    if isinstance(coords, list) and len(coords) >= 2:
-        try:
-            lon = float(coords[0])
-            lat = float(coords[1])
-        except (TypeError, ValueError):
-            return None, None
-        return lat, lon
-    return None, None
 
 
 def _parse_salary(

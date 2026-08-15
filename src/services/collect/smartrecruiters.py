@@ -19,12 +19,10 @@ when the public detail endpoint exposes them.
 from __future__ import annotations
 
 import asyncio
-import contextlib
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import httpx
-from pydantic import HttpUrl
 
 from exceptions import CollectorError, CompanyNotFoundError
 from services._base import BaseCollector, CollectorRegistry
@@ -173,17 +171,15 @@ class SmartRecruitersCollector(BaseCollector):
         )
 
         # Function (e.g. ``Customer Service``, ``Engineering``) is the
-        # closest to "team" SmartRecruiters exposes — fall through to
-        # it when ``department`` is empty (~65% of rows had no dept).
+        # closest analog when ``department`` is empty (~65% of rows had
+        # no dept).
         function = (
             item.get("function", {}).get("label")
             if isinstance(item.get("function"), dict)
             else None
         )
-        team = function if isinstance(function, str) else None
-        if not department and team:
-            department = team
-            team = None
+        if not department and isinstance(function, str):
+            department = function
 
         # ``typeOfEmployment`` ships as ``{id, label}``; the ``id`` is
         # the canonical enum (``permanent``, ``intern``, ``contract``,
@@ -192,11 +188,6 @@ class SmartRecruitersCollector(BaseCollector):
         emp_id = type_obj.get("id") if isinstance(type_obj, dict) else None
         emp_label = type_obj.get("label") if isinstance(type_obj, dict) else None
         employment_type = _map_employment_type(emp_id) or _map_employment_type(emp_label)
-        commitment = (
-            emp_label.strip()
-            if isinstance(emp_label, str) and emp_label.strip()
-            else (emp_id.strip() if isinstance(emp_id, str) and emp_id.strip() else None)
-        )
 
         raw: dict[str, Any] = {}
         for k in (
@@ -227,9 +218,7 @@ class SmartRecruitersCollector(BaseCollector):
             else item.get("language"),
             is_remote=is_remote,
             department=department,
-            team=team,
             employment_type=employment_type,
-            commitment=commitment,
             requisition_id=item.get("refNumber") or None,
             posted_at=_parse_iso(item.get("releasedDate")),
             fetched_at=datetime.now(tz=UTC),
@@ -264,12 +253,6 @@ def _apply_detail_to_job(job: Job, detail: dict[str, Any]) -> None:
                         parts.append(strip_html(text))
             if parts:
                 job.description = "\n\n".join(parts)[:25_000]
-
-    if not job.apply_url:
-        apply_url = detail.get("applyUrl")
-        if isinstance(apply_url, str) and apply_url.strip():
-            with contextlib.suppress(ValueError):
-                job.apply_url = HttpUrl(apply_url.strip())
 
 
 def _format_location(location: dict[str, Any]) -> str | None:

@@ -172,9 +172,6 @@ class RipplingCollector(BaseCollector):
             ats_id=ats_id,
             location=_extract_location(item),
             department=department,
-            commitment=item.get("employmentType")
-            if isinstance(item.get("employmentType"), str)
-            else None,
             posted_at=_parse_iso(item.get("createdAt") or item.get("created_at")),
             fetched_at=datetime.now(tz=UTC),
             raw=raw or None,
@@ -213,10 +210,6 @@ def _apply_detail_to_job(job: Job, detail: dict[str, Any]) -> None:
             mapped = _EMPLOYMENT_TYPE_MAP.get(label.strip().upper())
             if mapped and not job.employment_type:
                 job.employment_type = mapped
-        # ``id`` is the user-facing label ("Salaried, full-time").
-        commitment_id = emp.get("id")
-        if isinstance(commitment_id, str) and not job.commitment:
-            job.commitment = commitment_id.strip() or None
 
     created = detail.get("createdOn")
     if isinstance(created, str) and not job.posted_at:

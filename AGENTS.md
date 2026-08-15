@@ -55,21 +55,15 @@ openats validate companies [--workers N] [--dry-run]  # check company URLs exist
 | `location` | TEXT | | Free-form location |
 | `country_iso` | TEXT | | ISO 3166-1 alpha-2 |
 | `region` | TEXT | | Continent name |
-| `lat` | REAL / DOUBLE PRECISION | | WGS-84 latitude |
-| `lon` | REAL / DOUBLE PRECISION | | WGS-84 longitude |
 | `is_remote` | INTEGER | | 0/1 or NULL |
 | `salary_currency` | TEXT | | ISO 4217 code |
 | `salary_period` | TEXT | | HOUR/DAY/WEEK/MONTH/YEAR |
 | `salary_summary` | TEXT | | Original salary string |
 | `salary_min` | REAL / DOUBLE PRECISION | | Lower bound |
 | `salary_max` | REAL / DOUBLE PRECISION | | Upper bound |
-| `experience` | INTEGER | | Years |
 | `employment_type` | TEXT | | FULL_TIME/PART_TIME/CONTRACT/INTERN/TEMPORARY |
 | `department` | TEXT | | Org grouping |
-| `team` | TEXT | | Sub-team |
 | `requisition_id` | TEXT | | Internal req ID |
-| `apply_url` | TEXT | | Direct apply URL |
-| `commitment` | TEXT | | Free-form commitment label |
 | `description` | TEXT | | Plain-text job description |
 | `posted_at` | TEXT | | ISO-8601 UTC |
 | `fetched_at` | TEXT | | ISO-8601 UTC |
@@ -109,7 +103,7 @@ Unique: `idx_companies_unique (ats, name, slug)`
 
 | Property | Value |
 |---|---|
-| Columns | Same 29 columns as `jobs` |
+| Columns | Same 23 columns as `jobs` |
 | Purpose | Speed up `dump-recent` export |
 | Retention | Records within cutoff window (default 24h by `posted_at`) |
 | Population | Populated on pipeline flush, pruned/synced on `dump-recent` |

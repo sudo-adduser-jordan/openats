@@ -164,7 +164,6 @@ class RemoteOKCollector(BaseCollector):
             salary_period="YEAR",
             salary_min=salary_min,
             salary_max=salary_max,
-            apply_url=item.get("apply_url"),
             description=description,
             posted_at=posted_at,
             fetched_at=datetime.now(tz=UTC),

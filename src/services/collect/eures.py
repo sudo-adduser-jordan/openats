@@ -529,14 +529,12 @@ class EuresCollector(BaseCollector):
         # EURES ships a freeform-ish ``positionOfferingCode``
         # ("directhire", "temporary", "contract", "apprenticeship",
         # "seasonal", "oncall", "selfemployed", …) — map to the
-        # canonical employment-type enum and surface the original
-        # code as ``commitment`` for display.
+        # canonical employment-type enum. The original code is stashed
+        # in ``raw.positionOfferingCode`` above.
         offering = item.get("positionOfferingCode")
-        commitment: str | None = None
         employment_type: str | None = None
         if isinstance(offering, str) and offering.strip():
-            commitment = offering.strip()
-            norm = commitment.lower()
+            norm = offering.lower()
             employment_type = _OFFERING_CODE_TO_EMPLOYMENT_TYPE.get(norm)
             if not employment_type:
                 for needle, mapped in _OFFERING_CODE_TO_EMPLOYMENT_TYPE.items():
@@ -575,7 +573,6 @@ class EuresCollector(BaseCollector):
             location=location,
             country_iso=country_iso,
             employment_type=employment_type,
-            commitment=commitment,
             description=_extract_description(item),
             posted_at=posted_at,
             fetched_at=datetime.now(tz=UTC),
@@ -743,8 +740,6 @@ def _job_summary_description(job: Job) -> str | None:
         parts.append(f"Location: {job.location.strip()}")
     if job.employment_type and job.employment_type.strip():
         parts.append(f"Employment type: {job.employment_type.strip()}")
-    if job.commitment and job.commitment.strip():
-        parts.append(f"Contract type: {job.commitment.strip()}")
     return ". ".join(parts)[:25_000] or None
 
 

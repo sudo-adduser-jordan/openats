@@ -227,7 +227,7 @@ def _apply_detail_to_job(job: Job, html: str) -> None:
     if description and not job.description:
         job.description = description[:25_000]
 
-    # Location + team chips.
+    # Location chip.
     for chip in _CHIP_RE.finditer(html):
         icon = chip.group("icon")
         value = html_mod.unescape(chip.group("value")).strip()
@@ -235,8 +235,6 @@ def _apply_detail_to_job(job: Job, html: str) -> None:
             continue
         if icon == "place" and not job.location:
             job.location = value
-        elif icon == "corporate_fare" and not job.team:
-            job.team = value
 
 
 _GOOGLE_SECTION_HEADINGS = (

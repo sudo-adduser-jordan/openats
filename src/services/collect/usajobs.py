@@ -29,7 +29,7 @@ import httpx
 
 from exceptions import CollectorError
 from services._base import BaseCollector, CollectorRegistry, _json
-from services._helpers import as_url, as_url_or_none
+from services._helpers import as_url
 from services._helpers import parse_iso_datetime as _parse_iso
 from services._models import ATSType, EmploymentType, Job, SalaryPeriod
 
@@ -222,12 +222,6 @@ class USAJobsCollector(BaseCollector):
         )
         description_html = ud.get("JobSummary") if isinstance(ud, dict) else None
 
-        apply_uri = descriptor.get("ApplyURI")
-        if isinstance(apply_uri, list) and apply_uri:
-            apply_uri = apply_uri[0]
-        if not isinstance(apply_uri, str):
-            apply_uri = None
-
         raw: dict[str, Any] = {}
         for k in (
             "DepartmentName",
@@ -250,8 +244,6 @@ class USAJobsCollector(BaseCollector):
             ats_id=ats_id,
             location=location,
             employment_type=employment_type,
-            commitment=emp_name if isinstance(emp_name, str) else None,
-            apply_url=as_url_or_none(apply_uri if apply_uri and apply_uri != url else None),
             requisition_id=ats_id if ats_id else None,
             description=_html_unescape_for_desc(description_html),
             salary_min=salary_min,
