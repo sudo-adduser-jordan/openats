@@ -28,8 +28,8 @@ openats dump watchlist [watchlist]                # dump jobs for watchlist sour
 openats watchlist load <path>                     # load watch list from parquet files in directory
 openats watchlist list                            # list available watchlist titles
 openats remove unwatched [--dry-run]              # remove companies not in any watchlist
-openats validate jobs [--workers N] [--dry-run]   # check job URLs exist and titles match
-openats validate companies [--workers N] [--dry-run]  # check company URLs exist and names match
+openats validate jobs [--workers N] [--dry-run]   # remove jobs whose URLs return 404/410
+openats validate companies [--workers N] [--dry-run]  # remove companies whose URLs return 404/410
 ```
 
 ## Project Context

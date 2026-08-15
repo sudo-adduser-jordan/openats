@@ -82,101 +82,6 @@ NOT_SENIOR_MANAGER = """
     AND "title" NOT LIKE '%vp of%'
 """
 
-NOT_SENIOR_MANAGER_AI = """
-    AND "title" NOT LIKE '%senior%'
-    AND "title" NOT LIKE '%director%'
-    AND "title" NOT LIKE '%sr.%'
-    AND "title" NOT LIKE '%sr %'
-    AND "title" NOT LIKE '%principal%'
-    AND "title" NOT LIKE '%lead%'
-    AND "title" NOT LIKE '%vp of%'
-"""
-
-AI_TITLE_MATCH = """
-    AND (
-        "title" LIKE 'ai %'
-        OR "title" LIKE '% ai %'
-        OR "title" LIKE '% ai,%'
-        OR "title" LIKE '% ai/%'
-        OR "title" LIKE '% ai-%'
-        OR "title" LIKE '% ai.%'
-        OR "title" LIKE '% ai(%'
-        OR "title" LIKE '% ai)%'
-        OR "title" LIKE '% ai&%'
-        OR "title" LIKE '%ai,%'
-        OR "title" LIKE '%ai/%'
-        OR "title" LIKE '%ai-%'
-        OR "title" LIKE '%ai.%'
-        OR "title" LIKE '%ai&%'
-        OR "title" LIKE '%ai(%'
-        OR "title" LIKE '%ai)%'
-        OR "title" LIKE 'llm %'
-        OR "title" LIKE '% llm%'
-        OR "title" LIKE '%llm %'
-        OR "title" LIKE '%llm,%'
-        OR "title" LIKE '%llm/%'
-        OR "title" LIKE '%llm-%'
-        OR "title" LIKE '%llm.%'
-        OR "title" LIKE '%llm(%'
-        OR "title" LIKE '%llm)%'
-        OR "title" LIKE '%llms%'
-        OR "title" LIKE '%llmops%'
-        OR "title" LIKE '%machine learning%'
-        OR "title" LIKE '%machine-learning%'
-        OR "title" LIKE '%artificial intelligence%'
-        OR "title" LIKE '%large language model%'
-        OR "title" LIKE '%deep learning%'
-        OR "title" LIKE '%natural language%'
-        OR "title" LIKE '%nlp%'
-        OR "title" LIKE '%computer vision%'
-        OR "title" LIKE '%generative%'
-        OR "title" LIKE '%genai%'
-        OR "title" LIKE '%prompt engineering%'
-        OR "title" LIKE '%mlops%'
-        OR "title" LIKE '%ml ops%'
-        OR "title" LIKE '%ml engineer%'
-        OR "title" LIKE '%ml platform%'
-        OR "title" LIKE '%mle%'
-        OR "title" LIKE '%model training%'
-        OR "title" LIKE '%model inference%'
-        OR "title" LIKE '%agentic%'
-        OR "title" LIKE '%aiops%'
-        OR "title" LIKE '%algorithm%'
-    )
-"""
-
-IT_SECTOR_MATCH = """
-    AND (
-        "title" LIKE '%engineer%'
-        OR "title" LIKE '%developer%'
-        OR "title" LIKE '%develop%'
-        OR "title" LIKE '%software%'
-        OR "title" LIKE '%sde%'
-        OR "title" LIKE '%programmer%'
-        OR "title" LIKE '%architect%'
-        OR "title" LIKE '%scientist%'
-        OR "title" LIKE '%researcher%'
-        OR "title" LIKE '%mlops%'
-        OR "title" LIKE '%devops%'
-        OR "title" LIKE '%sre%'
-        OR "title" LIKE '%platform%'
-        OR "title" LIKE '%infrastructure%'
-        OR "title" LIKE '%backend%'
-        OR "title" LIKE '%frontend%'
-        OR "title" LIKE '%fullstack%'
-        OR "title" LIKE '%full stack%'
-        OR "title" LIKE '%systems%'
-        OR "title" LIKE '%database%'
-        OR "title" LIKE '%tester%'
-        OR "title" LIKE '%qa%'
-        OR "title" LIKE '%technical%'
-        OR "title" LIKE '%technology%'
-        OR "title" LIKE '%data%'
-        OR "title" LIKE '%product%'
-        OR "title" LIKE '%analyst%'
-    )
-"""
-
 INTERN_TITLE_MATCH = """
     AND (
         "title" LIKE 'intern %'
@@ -460,50 +365,6 @@ AND "country_iso" LIKE '%US%'
 ORDER BY "is_remote" DESC, "posted_at" DESC
 """
 
-CREATE_VIEW_US_AI = f"""
-CREATE VIEW IF NOT EXISTS view_us_ai AS
-SELECT "url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
-WHERE 1=1
-{AI_TITLE_MATCH}
-{IT_SECTOR_MATCH}
-{NOT_SENIOR_MANAGER_AI}
-AND "country_iso" LIKE '%US%'
-ORDER BY "is_remote" DESC, "posted_at" DESC
-"""
-
-CREATE_VIEW_JUNIOR_US_AI = f"""
-CREATE VIEW IF NOT EXISTS view_junior_us_ai AS
-SELECT "url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
-WHERE "title" LIKE '%junior%'
-{AI_TITLE_MATCH}
-{IT_SECTOR_MATCH}
-{NOT_SENIOR_MANAGER_AI}
-AND "country_iso" LIKE '%US%'
-ORDER BY "is_remote" DESC, "posted_at" DESC
-"""
-
-CREATE_VIEW_US_AI_24H = f"""
-CREATE VIEW IF NOT EXISTS view_us_ai_24h AS
-SELECT "url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
-WHERE 1=1
-{AI_TITLE_MATCH}
-{IT_SECTOR_MATCH}
-{NOT_SENIOR_MANAGER_AI}
-AND "country_iso" LIKE '%US%'
-ORDER BY "is_remote" DESC, "posted_at" DESC
-"""
-
-CREATE_VIEW_JUNIOR_US_AI_24H = f"""
-CREATE VIEW IF NOT EXISTS view_junior_us_ai_24h AS
-SELECT "url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
-WHERE "title" LIKE '%junior%'
-{AI_TITLE_MATCH}
-{IT_SECTOR_MATCH}
-{NOT_SENIOR_MANAGER_AI}
-AND "country_iso" LIKE '%US%'
-ORDER BY "is_remote" DESC, "posted_at" DESC
-"""
-
 CREATE_VIEW_US_INTERN = f"""
 CREATE VIEW IF NOT EXISTS view_us_intern AS
 SELECT "url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
@@ -560,90 +421,6 @@ CREATE VIEW IF NOT EXISTS view_us_nursing_24h AS
 SELECT "url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
 WHERE 1=1
 {NURSING_TITLE_MATCH}
-AND "country_iso" LIKE '%US%'
-ORDER BY "is_remote" DESC, "posted_at" DESC
-"""
-
-CREATE_VIEW_US_NEW_GRAD_SOFTWARE = f"""
-CREATE VIEW IF NOT EXISTS view_us_new_grad_software AS
-SELECT "url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
-WHERE "title" LIKE '%new grad%'
-AND "title" LIKE '%software%'
-{NOT_SENIOR_MANAGER}
-AND "country_iso" LIKE '%US%'
-ORDER BY "is_remote" DESC, "posted_at" DESC
-"""
-
-CREATE_VIEW_US_NEW_GRAD_SOFTWARE_24H = f"""
-CREATE VIEW IF NOT EXISTS view_us_new_grad_software_24h AS
-SELECT "url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
-WHERE "title" LIKE '%new grad%'
-AND "title" LIKE '%software%'
-{NOT_SENIOR_MANAGER}
-AND "country_iso" LIKE '%US%'
-ORDER BY "is_remote" DESC, "posted_at" DESC
-"""
-
-CREATE_VIEW_US_INTERNSHIP_SOFTWARE = f"""
-CREATE VIEW IF NOT EXISTS view_us_internship_software AS
-SELECT "url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
-WHERE 1=1
-{INTERN_TITLE_MATCH}
-AND "title" LIKE '%software%'
-{NOT_SENIOR_MANAGER}
-AND "country_iso" LIKE '%US%'
-ORDER BY "is_remote" DESC, "posted_at" DESC
-"""
-
-CREATE_VIEW_US_INTERNSHIP_SOFTWARE_24H = f"""
-CREATE VIEW IF NOT EXISTS view_us_internship_software_24h AS
-SELECT "url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
-WHERE 1=1
-{INTERN_TITLE_MATCH}
-AND "title" LIKE '%software%'
-{NOT_SENIOR_MANAGER}
-AND "country_iso" LIKE '%US%'
-ORDER BY "is_remote" DESC, "posted_at" DESC
-"""
-
-CREATE_VIEW_US_NEW_GRAD_DEVELOPER = f"""
-CREATE VIEW IF NOT EXISTS view_us_new_grad_developer AS
-SELECT "url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
-WHERE "title" LIKE '%new grad%'
-AND "title" LIKE '%developer%'
-{NOT_SENIOR_MANAGER}
-AND "country_iso" LIKE '%US%'
-ORDER BY "is_remote" DESC, "posted_at" DESC
-"""
-
-CREATE_VIEW_US_NEW_GRAD_DEVELOPER_24H = f"""
-CREATE VIEW IF NOT EXISTS view_us_new_grad_developer_24h AS
-SELECT "url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
-WHERE "title" LIKE '%new grad%'
-AND "title" LIKE '%developer%'
-{NOT_SENIOR_MANAGER}
-AND "country_iso" LIKE '%US%'
-ORDER BY "is_remote" DESC, "posted_at" DESC
-"""
-
-CREATE_VIEW_US_INTERNSHIP_DEVELOPER = f"""
-CREATE VIEW IF NOT EXISTS view_us_internship_developer AS
-SELECT "url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs"
-WHERE 1=1
-{INTERN_TITLE_MATCH}
-AND "title" LIKE '%developer%'
-{NOT_SENIOR_MANAGER}
-AND "country_iso" LIKE '%US%'
-ORDER BY "is_remote" DESC, "posted_at" DESC
-"""
-
-CREATE_VIEW_US_INTERNSHIP_DEVELOPER_24H = f"""
-CREATE VIEW IF NOT EXISTS view_us_internship_developer_24h AS
-SELECT "url", "title", "is_remote", "company", "ats_type", "location", "country_iso" FROM "jobs_recent"
-WHERE 1=1
-{INTERN_TITLE_MATCH}
-AND "title" LIKE '%developer%'
-{NOT_SENIOR_MANAGER}
 AND "country_iso" LIKE '%US%'
 ORDER BY "is_remote" DESC, "posted_at" DESC
 """
@@ -926,24 +703,12 @@ class Database:
         self.create_view_us_devops_24h(connection)
         self.create_view_us_new_grad(connection)
         self.create_view_us_new_grad_24h(connection)
-        self.create_view_us_ai(connection)
-        self.create_view_junior_us_ai(connection)
-        self.create_view_us_ai_24h(connection)
-        self.create_view_junior_us_ai_24h(connection)
         self.create_view_us_intern(connection)
         self.create_view_us_intern_24h(connection)
         self.create_view_us_entry_level(connection)
         self.create_view_us_entry_level_24h(connection)
         self.create_view_us_nursing(connection)
         self.create_view_us_nursing_24h(connection)
-        self.create_view_us_new_grad_software(connection)
-        self.create_view_us_new_grad_software_24h(connection)
-        self.create_view_us_internship_software(connection)
-        self.create_view_us_internship_software_24h(connection)
-        self.create_view_us_new_grad_developer(connection)
-        self.create_view_us_new_grad_developer_24h(connection)
-        self.create_view_us_internship_developer(connection)
-        self.create_view_us_internship_developer_24h(connection)
         self.create_index_companies_unique(connection)
         logger.info(operation="database_initialize_done")
 
@@ -1156,34 +921,36 @@ class Database:
             total = len(rows)
             passed = 0
             failed = 0
+            skipped = 0
             failed_ids: list[str] = []
 
-            def _check(row: tuple) -> tuple[bool, str | None]:
-                _gid, url, title = row
+            def _check(row: tuple) -> tuple[str, str | None]:
+                _gid, url, _title = row
                 try:
-                    resp_head = httpx.head(url, timeout=10.0, follow_redirects=True)
-                    if not resp_head.is_success:
-                        return (False, f"HEAD {resp_head.status_code}")
-
                     resp_get = httpx.get(url, timeout=10.0, follow_redirects=True)
-                    if not resp_get.is_success:
-                        return (False, f"GET {resp_get.status_code}")
-                    if title.lower() not in resp_get.text.lower():
-                        return (False, "title not found in page body")
-
-                    return (True, None)
+                    if resp_get.status_code in (404, 410):
+                        return ("delete", f"GET {resp_get.status_code}")
+                    if resp_get.is_success:
+                        return ("ok", None)
+                    return ("skip", f"GET {resp_get.status_code}")
+                except httpx.TimeoutException as exc:
+                    return ("skip", f"timeout: {exc}")
+                except httpx.NetworkError as exc:
+                    return ("skip", f"network error: {exc}")
+                except httpx.HTTPError as exc:
+                    return ("skip", f"HTTP error: {exc}")
                 except Exception as exc:
-                    return (False, str(exc))
+                    return ("skip", str(exc))
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as pool:
                 fut_to_row = {pool.submit(_check, r): r for r in rows}
                 for count, fut in enumerate(concurrent.futures.as_completed(fut_to_row), start=1):
                     row = fut_to_row[fut]
-                    ok, reason = fut.result()
-                    if ok:
+                    status, reason = fut.result()
+                    if status == "ok":
                         passed += 1
                         print(f"[{count}/{total}] [OK] {row[2]} — {row[1]}")
-                    else:
+                    elif status == "delete" and not dry_run:
                         failed += 1
                         failed_ids.append(row[0])
                         print(f"[{count}/{total}] [FAIL] {row[2]} — {row[1]} ({reason})")
@@ -1194,6 +961,9 @@ class Database:
                             title=row[2],
                             reason=reason or "unknown",
                         )
+                    else:
+                        skipped += 1
+                        print(f"[{count}/{total}] [SKIP] {row[2]} — {row[1]} ({reason})")
 
             if failed_ids and not dry_run:
                 for i in range(0, len(failed_ids), 500):
@@ -1209,10 +979,11 @@ class Database:
                 total=total,
                 passed=passed,
                 failed=failed,
+                skipped=skipped,
                 removed=removed,
                 dry_run=dry_run,
             )
-            return passed, failed, total
+            return passed, failed, skipped, total
         except Exception as exc:
             logger.error(operation="validate_job_urls", error=str(exc))
             raise
@@ -1234,23 +1005,14 @@ class Database:
             skipped = 0
 
             def _check(row: tuple) -> tuple[str, str | None]:
-                _rid, name, _slug, url = row
+                _rid, _name, _slug, url = row
                 try:
-                    resp_head = httpx.head(url, timeout=10.0, follow_redirects=True)
-                    if not resp_head.is_success:
-                        if resp_head.status_code in (404, 410):
-                            return ("delete", f"HEAD {resp_head.status_code}")
-                        return ("skip", f"HEAD {resp_head.status_code}")
-
                     resp_get = httpx.get(url, timeout=10.0, follow_redirects=True)
-                    if not resp_get.is_success:
-                        if resp_get.status_code in (404, 410):
-                            return ("delete", f"GET {resp_get.status_code}")
-                        return ("skip", f"GET {resp_get.status_code}")
-                    if name.lower() not in resp_get.text.lower():
-                        return ("delete", "company name not found in page body")
-
-                    return ("ok", None)
+                    if resp_get.status_code in (404, 410):
+                        return ("delete", f"GET {resp_get.status_code}")
+                    if resp_get.is_success:
+                        return ("ok", None)
+                    return ("skip", f"GET {resp_get.status_code}")
                 except httpx.TimeoutException as exc:
                     return ("skip", f"timeout: {exc}")
                 except httpx.NetworkError as exc:
@@ -1465,38 +1227,6 @@ class Database:
             logger.error(operation="create_view_us_new_grad_24h", error=str(exc))
             raise
 
-    def create_view_us_ai(self, connection):
-        try:
-            self._drop_view(connection, "view_us_ai")
-            connection.execute(CREATE_VIEW_US_AI)
-        except Exception as exc:
-            logger.error(operation="create_view_us_ai", error=str(exc))
-            raise
-
-    def create_view_junior_us_ai(self, connection):
-        try:
-            self._drop_view(connection, "view_junior_us_ai")
-            connection.execute(CREATE_VIEW_JUNIOR_US_AI)
-        except Exception as exc:
-            logger.error(operation="create_view_junior_us_ai", error=str(exc))
-            raise
-
-    def create_view_us_ai_24h(self, connection):
-        try:
-            self._drop_view(connection, "view_us_ai_24h")
-            connection.execute(CREATE_VIEW_US_AI_24H)
-        except Exception as exc:
-            logger.error(operation="create_view_us_ai_24h", error=str(exc))
-            raise
-
-    def create_view_junior_us_ai_24h(self, connection):
-        try:
-            self._drop_view(connection, "view_junior_us_ai_24h")
-            connection.execute(CREATE_VIEW_JUNIOR_US_AI_24H)
-        except Exception as exc:
-            logger.error(operation="create_view_junior_us_ai_24h", error=str(exc))
-            raise
-
     def create_view_us_intern(self, connection):
         try:
             self._drop_view(connection, "view_us_intern")
@@ -1543,70 +1273,6 @@ class Database:
             connection.execute(CREATE_VIEW_US_NURSING_24H)
         except Exception as exc:
             logger.error(operation="create_view_us_nursing_24h", error=str(exc))
-            raise
-
-    def create_view_us_new_grad_software(self, connection):
-        try:
-            self._drop_view(connection, "view_us_new_grad_software")
-            connection.execute(CREATE_VIEW_US_NEW_GRAD_SOFTWARE)
-        except Exception as exc:
-            logger.error(operation="create_view_us_new_grad_software", error=str(exc))
-            raise
-
-    def create_view_us_new_grad_software_24h(self, connection):
-        try:
-            self._drop_view(connection, "view_us_new_grad_software_24h")
-            connection.execute(CREATE_VIEW_US_NEW_GRAD_SOFTWARE_24H)
-        except Exception as exc:
-            logger.error(operation="create_view_us_new_grad_software_24h", error=str(exc))
-            raise
-
-    def create_view_us_internship_software(self, connection):
-        try:
-            self._drop_view(connection, "view_us_internship_software")
-            connection.execute(CREATE_VIEW_US_INTERNSHIP_SOFTWARE)
-        except Exception as exc:
-            logger.error(operation="create_view_us_internship_software", error=str(exc))
-            raise
-
-    def create_view_us_internship_software_24h(self, connection):
-        try:
-            self._drop_view(connection, "view_us_internship_software_24h")
-            connection.execute(CREATE_VIEW_US_INTERNSHIP_SOFTWARE_24H)
-        except Exception as exc:
-            logger.error(operation="create_view_us_internship_software_24h", error=str(exc))
-            raise
-
-    def create_view_us_new_grad_developer(self, connection):
-        try:
-            self._drop_view(connection, "view_us_new_grad_developer")
-            connection.execute(CREATE_VIEW_US_NEW_GRAD_DEVELOPER)
-        except Exception as exc:
-            logger.error(operation="create_view_us_new_grad_developer", error=str(exc))
-            raise
-
-    def create_view_us_new_grad_developer_24h(self, connection):
-        try:
-            self._drop_view(connection, "view_us_new_grad_developer_24h")
-            connection.execute(CREATE_VIEW_US_NEW_GRAD_DEVELOPER_24H)
-        except Exception as exc:
-            logger.error(operation="create_view_us_new_grad_developer_24h", error=str(exc))
-            raise
-
-    def create_view_us_internship_developer(self, connection):
-        try:
-            self._drop_view(connection, "view_us_internship_developer")
-            connection.execute(CREATE_VIEW_US_INTERNSHIP_DEVELOPER)
-        except Exception as exc:
-            logger.error(operation="create_view_us_internship_developer", error=str(exc))
-            raise
-
-    def create_view_us_internship_developer_24h(self, connection):
-        try:
-            self._drop_view(connection, "view_us_internship_developer_24h")
-            connection.execute(CREATE_VIEW_US_INTERNSHIP_DEVELOPER_24H)
-        except Exception as exc:
-            logger.error(operation="create_view_us_internship_developer_24h", error=str(exc))
             raise
 
     def apply_performance_settings(self, connection):

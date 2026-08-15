@@ -303,13 +303,13 @@ def _load_database(args: argparse.Namespace):
 
 def _validate_jobs(args: argparse.Namespace):
     with database.connect() as connection:
-        passed, failed, total = database.validate_job_urls(
+        passed, failed, skipped, total = database.validate_job_urls(
             connection, max_workers=args.workers, dry_run=args.dry_run
         )
     label = " (dry run)" if args.dry_run else ""
     removed = 0 if args.dry_run else failed
     print(
-        f"Job URL validation: {passed} valid, {failed} failed, {removed} removed / {total} total{label}."
+        f"Job URL validation: {passed} valid, {failed} failed, {skipped} skipped, {removed} removed / {total} total{label}."
     )
 
 
@@ -441,7 +441,7 @@ def _build_parser() -> argparse.ArgumentParser:
     validate = sub.add_parser("validate", help="Validate data quality")
     validate_sub = validate.add_subparsers(dest="validate_command")
 
-    validate_jobs = validate_sub.add_parser("jobs", help="Check job URLs exist and titles match")
+    validate_jobs = validate_sub.add_parser("jobs", help="Remove jobs whose URLs return 404/410")
     validate_jobs.add_argument(
         "--workers",
         type=int,
@@ -454,7 +454,7 @@ def _build_parser() -> argparse.ArgumentParser:
     validate_jobs.set_defaults(func=_validate_jobs)
 
     validate_companies = validate_sub.add_parser(
-        "companies", help="Check company URLs exist and names match"
+        "companies", help="Remove companies whose URLs return 404/410"
     )
     validate_companies.add_argument(
         "--workers",
