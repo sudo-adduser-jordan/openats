@@ -98,6 +98,7 @@ DISABLED_ATS: frozenset[ATSType] = frozenset(
         ATSType.EURES,
         ATSType.BUNDESAGENTUR,
         ATSType.ARBETSFORMEDLINGEN,
+        ATSType.USAJOBS,
     }
 )
 

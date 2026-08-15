@@ -14,7 +14,7 @@ pytest
 ```
 uv run openats                                    # runs full pipeline (collect all companies)
 openats database                                  # create/reinitialize database schema
-openats load database                             # load seed data (companies, ats, watchlists) from parquet
+openats load database                             # load seed data (companies, watchlists) from parquet
 openats collect [--skip ...]                      # collect all, optionally skipping ATS type(s)
 openats collect company [companies...]            # collect jobs for specific company name(s) or slug(s)
 openats collect ats [ats...] [--skip ...]         # collect jobs for all companies on given ATS type(s)
@@ -23,7 +23,6 @@ openats dump recent jobs                          # dump jobs posted in last 24 
 openats dump ats [ats...]                         # dump jobs grouped by ATS type → data/parquet/jobs_by_ats/{ats}.parquet
 openats dump company [companies...]               # dump jobs grouped by company → data/parquet/jobs_by_company/{slug}.parquet
 openats dump companies-table                      # dump full companies table → data/parquet/companies.parquet
-openats dump ats-table                            # dump ats table → data/parquet/ats.parquet
 openats dump watchlist-table                      # dump watchlists table → data/parquet/watchlists.parquet
 openats dump watchlist [watchlist]                # dump jobs for watchlist source(s) → data/parquet/jobs_by_watchlist/{source}.parquet
 openats watchlist load <path>                     # load watch list from parquet files in directory
@@ -80,14 +79,6 @@ openats validate companies [--workers N] [--dry-run]  # check company URLs exist
 | `url` | TEXT | Company careers URL | |
 
 Unique: `idx_companies_unique (ats, name, slug)`
-
-### `ats` — supported ATS types
-
-| Column | Type | Notes | Index |
-|---|---|---|---|
-| `ats` | TEXT | ATSType enum value | `idx_ats_unique UNIQUE` (PK in PG) |
-| `name` | TEXT | Display name | |
-| `slug` | TEXT | Slug | |
 
 ### `watchlists` — user-curated company watchlist
 
@@ -147,12 +138,6 @@ Unique: `idx_companies_unique (ats, name, slug)`
                     └───────┬───────┘
                             ▼
                      companies table
-                            │
-                    build_ats_from_companies()
-                            │
-                            ▼
-                      ats table
-                    (distinct ats)
 
                   │ run_producers()
                   ▼

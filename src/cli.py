@@ -40,12 +40,6 @@ def _dump_companies(args: argparse.Namespace):
     print("Dumped companies table to data/parquet/companies.parquet")
 
 
-def _dump_ats_table(args: argparse.Namespace):
-    with database.connect() as connection:
-        database.dump_ats_table(connection)
-    print("Dumped ats table to data/parquet/ats.parquet")
-
-
 def _dump_watchlist_table(args: argparse.Namespace):
     with database.connect() as connection:
         database.dump_watch_table(connection)
@@ -303,7 +297,6 @@ def _database(args: argparse.Namespace):
 def _load_database(args: argparse.Namespace):
     with database.connect() as connection:
         database.load_companies_from_parquet(connection)
-        database.build_ats_from_companies(connection)
         database.load_watchlists_dir(connection, "data/parquet/watchlists")
     print("Database loaded")
 
@@ -376,13 +369,10 @@ def _build_parser() -> argparse.ArgumentParser:
     dump_company.set_defaults(func=_dump_company)
 
     dump_companies = dump_sub.add_parser(
-        "companies-table", help="Dump the companies table to parquet"
+        "companies-table",
+        help="Dump the companies table to parquet",
     )
     dump_companies.set_defaults(func=_dump_companies)
-
-    dump_ats_table = dump_sub.add_parser("ats-table", help="Dump the ats table to parquet")
-    dump_ats_table.set_defaults(func=_dump_ats_table)
-
     dump_watchlist_table = dump_sub.add_parser(
         "watchlist-table", help="Dump the watchlists table to parquet"
     )

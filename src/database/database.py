@@ -11,7 +11,7 @@ from config import DATABASE_PATH, VALIDATION_CONCURRENCY
 from services._models import ATSType
 from utils.logger import logger
 
-_STANDARD_TABLES = frozenset({"companies", "ats", "jobs", "watchlists"})
+_STANDARD_TABLES = frozenset({"companies", "jobs", "watchlists"})
 
 JOBS_TABLE = "jobs"
 
@@ -650,7 +650,6 @@ ORDER BY "is_remote" DESC, "posted_at" DESC
 
 SELECT_COMPANIES_ATS = "SELECT ats, name, slug, url FROM companies"
 SELECT_ALL_COMPANIES = "SELECT * FROM companies"
-SELECT_ALL_ATS = "SELECT * FROM ats"
 
 PRAGMA_JOURNAL_WAL = "PRAGMA journal_mode=WAL"
 PRAGMA_SYNCHRONOUS_NORMAL = "PRAGMA synchronous=NORMAL"
@@ -660,18 +659,15 @@ PRAGMA_TEMP_STORE = "PRAGMA temp_store = MEMORY"
 PRAGMA_MMAP_SIZE = "PRAGMA mmap_size = 268435456"
 INSERT_COMPANY = "INSERT OR IGNORE INTO companies (ats, name, slug, url) VALUES (?, ?, ?, ?)"
 
-DROP_ATS_TABLE = "DROP TABLE IF EXISTS ats"
-CREATE_ATS_TABLE = "CREATE TABLE ats (ats TEXT, name TEXT, slug TEXT)"
 DROP_JOBS_TABLE = "DROP TABLE IF EXISTS jobs"
 DELETE_JOBS = "DELETE FROM jobs"
 CREATE_UNIQUE_INDEX_COMPANIES = (
     "CREATE UNIQUE INDEX IF NOT EXISTS idx_companies_unique ON companies(ats, name, slug)"
 )
-CREATE_UNIQUE_INDEX_ATS = "CREATE UNIQUE INDEX IF NOT EXISTS idx_ats_unique ON ats(ats)"
 SELECT_COMPANIES_COUNT = "SELECT COUNT(*) FROM companies"
 SELECT_NON_STANDARD_TABLES = (
     "SELECT name FROM sqlite_master WHERE type='table' AND name NOT IN "
-    "('companies', 'jobs', 'ats', 'watchlists', 'jobs_recent', 'sqlite_sequence')"
+    "('companies', 'jobs', 'watchlists', 'jobs_recent', 'sqlite_sequence')"
 )
 
 DROP_WATCHLISTS_TABLE = "DROP TABLE IF EXISTS watchlists"
@@ -797,9 +793,6 @@ DELETE_UNWATCHED_COMPANIES = (
 # --- Data queries ---
 SELECT_DISTINCT_COMPANIES = "SELECT DISTINCT company FROM jobs ORDER BY company"
 DELETE_COMPANIES = "DELETE FROM companies"
-INSERT_ATS_FROM_COMPANIES = (
-    "INSERT INTO ats (ats, name, slug) SELECT DISTINCT ats, ats, ats FROM companies ORDER BY ats"
-)
 SELECT_DISTINCT_ATS_TYPES = 'SELECT DISTINCT ats_type FROM "jobs" ORDER BY ats_type'
 
 # --- Dynamic SQL templates ---
@@ -892,7 +885,6 @@ class Database:
     def initialize(self, connection):
         logger.info(operation="database_initialize_start")
         self.apply_performance_settings(connection)
-        self.create_tables_ats(connection)
         self.create_table_companies(connection)
         self.create_table_jobs(connection)
         self.create_table_jobs_recent(connection)
@@ -952,7 +944,6 @@ class Database:
         self.create_view_us_new_grad_developer_24h(connection)
         self.create_view_us_internship_developer(connection)
         self.create_view_us_internship_developer_24h(connection)
-        self.create_index_ats_unique(connection)
         self.create_index_companies_unique(connection)
         logger.info(operation="database_initialize_done")
 
@@ -965,14 +956,6 @@ class Database:
         except Exception as exc:
             logger.error(operation="jobs_recent_table_stale_check", error=str(exc))
             return False
-
-    def create_tables_ats(self, connection):
-        try:
-            connection.execute(DROP_ATS_TABLE)
-            connection.execute(CREATE_ATS_TABLE)
-        except Exception as exc:
-            logger.error(operation="create_tables_ats", error=str(exc))
-            raise
 
     def create_table_jobs(self, connection):
         try:
@@ -1085,13 +1068,6 @@ class Database:
             connection.execute(CREATE_UNIQUE_INDEX_COMPANIES)
         except Exception as exc:
             logger.error(operation="create_index_companies_unique", error=str(exc))
-            raise
-
-    def create_index_ats_unique(self, connection):
-        try:
-            connection.execute(CREATE_UNIQUE_INDEX_ATS)
-        except Exception as exc:
-            logger.error(operation="create_index_ats_unique", error=str(exc))
             raise
 
     def create_index_jobs_country_iso(self, connection):
@@ -1809,14 +1785,6 @@ class Database:
             logger.error(operation="read_companies_table", error=str(exc))
             raise
 
-    def read_ats_table(self, connection):
-        try:
-            rows = connection.execute(SELECT_ALL_ATS).fetchall()
-            return [{"ats": r[0], "name": r[1], "slug": r[2]} for r in rows]
-        except Exception as exc:
-            logger.error(operation="read_ats_table", error=str(exc))
-            raise
-
     def company_count(self, connection) -> int:
         try:
             return connection.execute(SELECT_COMPANIES_COUNT).fetchone()[0]
@@ -1855,13 +1823,6 @@ class Database:
             logger.info(operation="load_companies_from_parquet", path=path, rows=n_rows)
         except Exception as exc:
             logger.error(operation="load_companies_from_parquet", path=path, error=str(exc))
-            raise
-
-    def build_ats_from_companies(self, connection):
-        try:
-            connection.execute(INSERT_ATS_FROM_COMPANIES)
-        except Exception as exc:
-            logger.error(operation="build_ats_from_companies", error=str(exc))
             raise
 
     def load_all_parquet(self, connection, directory: str = "data/parquet/companies_by_ats"):
@@ -2158,7 +2119,7 @@ class Database:
     # --- Internal helpers ---
 
     def _all_table_names(self, connection) -> list[str]:
-        standard = ["companies", "ats", "jobs", "watchlists"]
+        standard = ["companies", "jobs", "watchlists"]
         non_standard = [r[0] for r in connection.execute(SELECT_NON_STANDARD_TABLES).fetchall()]
         return standard + non_standard
 
@@ -2298,22 +2259,6 @@ class Database:
             return
         self._write_table_parquet(rows, "data/parquet/companies.parquet")
         logger.info(operation="dump_all_companies", rows=len(rows))
-
-    def dump_all_ats_table(self, connection) -> None:
-        rows = self._read_table_data(connection, "ats")
-        if not rows:
-            logger.info(operation="dump_all_ats_table", rows=0)
-            return
-        self._write_table_parquet(rows, "data/parquet/companies_table.parquet")
-        logger.info(operation="dump_all_ats_table", rows=len(rows))
-
-    def dump_ats_table(self, connection) -> None:
-        rows = self._read_table_data(connection, "ats")
-        if not rows:
-            logger.info(operation="dump_all_ats_table", rows=0)
-            return
-        self._write_table_parquet(rows, "data/parquet/ats.parquet")
-        logger.info(operation="dump_all_ats_table", rows=len(rows))
 
 
 # --- Singleton ---
