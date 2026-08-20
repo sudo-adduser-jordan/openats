@@ -3,10 +3,12 @@ SELECT
 "company",
 "title",
 "location",
-"is_remote"
+"is_remote",
+"posted_at"
 FROM jobs 
 WHERE "country_iso" LIKE '%US%' 
-AND "title" LIKE '%software%'
+AND "location" LIKE '%remote%'
+-- AND "title" LIKE '%software%'
 AND "title" NOT LIKE '%senior%'
 AND "title" NOT LIKE '%director%'
 AND "title" NOT LIKE '%sr.%'
