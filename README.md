@@ -1,9 +1,10 @@
 # openats
 
 
-[![PyPI](https://img.shields.io/pypi/v/openats-py.svg?color=brightgreen)](https://pypi.org/project/openats-py/)
-[![Python](https://img.shields.io/pypi/pyversions/openats-py.svg?color=brightgreen)](https://pypi.org/project/openats-py/)
-[![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
+<!-- Keep these badges in sync with the metadata in pyproject.toml. -->
+[![Version 0.1.0](https://img.shields.io/badge/version-0.1.0-brightgreen.svg)](pyproject.toml)
+[![Python >=3.11](https://img.shields.io/badge/python-%3E%3D3.11-brightgreen.svg)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-brightgreen.svg)](pyproject.toml)
 
 ## Install
 
