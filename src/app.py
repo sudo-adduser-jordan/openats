@@ -7,12 +7,14 @@ import dotenv
 from cli import _run_collect_pipeline
 from database.database import database
 from services._models import DISABLED_ATS
+from services.ats_status import log_ats_status
 from utils.logger import logger
 
 dotenv.load_dotenv()
 
 
 def main() -> None:
+    log_ats_status()
     nohup_out_removed = os.path.exists("nohup.out")
     logs_removed = os.path.isdir("logs")
     with contextlib.suppress(FileNotFoundError):
