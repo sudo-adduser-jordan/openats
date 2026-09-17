@@ -13,6 +13,7 @@ from config import VALIDATION_CONCURRENCY
 from database.database import SELECT_COMPANIES_SLUG_URL, database
 from producer import run_producers
 from services._models import DISABLED_ATS, ATSType
+from services.ats_status import log_ats_status
 from signals import setup_signal_handlers
 from workers import Worker
 
@@ -248,6 +249,8 @@ def _collect_watchlist(args: argparse.Namespace):
         try:
             ats_type = ATSType(e["ats"])
         except ValueError:
+            continue
+        if ats_type in DISABLED_ATS:
             continue
         slug = e["company_slug"]
         url = companies_urls.get(slug) or slug
@@ -491,6 +494,19 @@ def _build_parser() -> argparse.ArgumentParser:
 def main():
     parser = _build_parser()
     args = parser.parse_args()
+
+    # The continuous pipeline logs in app.main, including when invoked directly.
+    continuous = args.command is None or (
+        args.command == "collect" and args.collect_command is None and not args.skip
+    )
+    if not continuous:
+        skipped_ats = []
+        if args.command == "collect":
+            if args.collect_command is None:
+                skipped_ats = args.skip
+            elif args.collect_command == "watchlist":
+                skipped_ats = args.skip_ats
+        log_ats_status(skipped_ats)
 
     if args.command is None:
         from app import main as pipeline_main
