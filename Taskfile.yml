@@ -1,0 +1,206 @@
+version: "3"
+
+# Developer shortcuts for the openats CLI and quality checks.
+# Usage: task --list
+# Pass extra CLI arguments after `--`, e.g. `task collect:ats -- ashby lever`.
+
+vars:
+  UV: uv
+  CLI: uv run openats
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  setup:
+    desc: Install runtime and development dependencies
+    cmds:
+      - "{{.UV}} sync --extra dev"
+
+  update:
+    desc: Upgrade locked dependencies and sync the environment
+    cmds:
+      - "{{.UV}} lock --upgrade"
+      - "{{.UV}} sync --extra dev"
+
+  # --- Background pipeline --------------------------------------------------
+
+  start:
+    desc: Start the collection pipeline in the background
+    cmds:
+      - |
+        mkdir -p .run
+        nohup setsid sh -c 'echo $$ > .run/openats.pid; exec .venv/bin/openats' >> .run/openats.log 2>&1 < /dev/null &
+        sleep 1
+
+  stop:
+    desc: Stop the background collection pipeline
+    cmds:
+      - /bin/kill "$(cat .run/openats.pid)"; rm -f .run/openats.pid
+
+  # --- Quality checks -------------------------------------------------------
+
+  lint:
+    desc: Lint source code with ruff
+    cmds:
+      - "{{.UV}} run ruff check src/"
+
+  pylint:
+    desc: Run pylint checks
+    cmds:
+      - "{{.UV}} run pylint src/"
+
+  typecheck:
+    desc: Type-check source code with mypy
+    cmds:
+      - "{{.UV}} run mypy src/"
+
+  format:
+    desc: Format source code with ruff
+    cmds:
+      - "{{.UV}} run ruff format src/"
+
+  format:check:
+    desc: Verify formatting without editing files
+    cmds:
+      - "{{.UV}} run ruff format src/ --check"
+
+  fix:
+    desc: Auto-fix lint issues and format source code
+    cmds:
+      - "{{.UV}} run ruff check src/ --fix"
+      - "{{.UV}} run ruff format src/"
+
+  test:
+    desc: 'Run the test suite (extra args: task test -- -k pattern)'
+    cmds:
+      - "{{.UV}} run pytest {{.CLI_ARGS}}"
+
+  check:
+    desc: Run all CI checks (format, lint, types, tests)
+    cmds:
+      - task: format:check
+      - task: lint
+      - task: typecheck
+      - task: test
+
+  # --- Database -------------------------------------------------------------
+
+  db:init:
+    desc: Create or reinitialize the database schema
+    cmds:
+      - "{{.CLI}} database"
+
+  db:load:
+    desc: Load company and watchlist seed data from Parquet
+    cmds:
+      - "{{.CLI}} load database"
+
+  db:reset:
+    desc: Reinitialize the database and reload seed data
+    cmds:
+      - task: db:init
+      - task: db:load
+
+  # --- Collection -----------------------------------------------------------
+
+  collect:
+    desc: Run the continuous collection pipeline
+    cmds:
+      - "{{.CLI}}"
+
+  collect:all:
+    desc: 'Collect all companies (extra args: task collect:all -- --skip meta)'
+    cmds:
+      - "{{.CLI}} collect {{.CLI_ARGS}}"
+
+  collect:ats:
+    desc: Collect ATS types, e.g. task collect:ats -- ashby lever
+    cmds:
+      - "{{.CLI}} collect ats {{.CLI_ARGS}}"
+
+  collect:company:
+    desc: Collect companies by name or slug, e.g. task collect:company -- openai
+    cmds:
+      - "{{.CLI}} collect company {{.CLI_ARGS}}"
+
+  collect:watchlist:
+    desc: Collect one or all watchlists, e.g. task collect:watchlist -- ai
+    cmds:
+      - "{{.CLI}} collect watchlist {{.CLI_ARGS}}"
+
+  # --- Dump -----------------------------------------------------------------
+
+  dump:recent:
+    desc: Export jobs posted in the last 24 hours
+    cmds:
+      - "{{.CLI}} dump recent jobs"
+
+  dump:ats:
+    desc: Export jobs by ATS (default all), e.g. task dump:ats -- ashby
+    cmds:
+      - "{{.CLI}} dump ats {{.CLI_ARGS}}"
+
+  dump:company:
+    desc: Export jobs by company (default all), e.g. task dump:company -- openai
+    cmds:
+      - "{{.CLI}} dump company {{.CLI_ARGS}}"
+
+  dump:companies:
+    desc: Export the company directory to companies.parquet
+    cmds:
+      - "{{.CLI}} dump companies-table"
+
+  dump:watchlists:
+    desc: Export the watchlist table to watchlists.parquet
+    cmds:
+      - "{{.CLI}} dump watchlist-table"
+
+  dump:watchlist:
+    desc: Export watchlist jobs (default all), e.g. task dump:watchlist -- ai
+    cmds:
+      - "{{.CLI}} dump watchlist {{.CLI_ARGS}}"
+
+  # --- Watchlist ------------------------------------------------------------
+
+  watchlist:list:
+    desc: List available watchlist titles
+    cmds:
+      - "{{.CLI}} watchlist list"
+
+  watchlist:load:
+    desc: Load watchlists from a Parquet directory, e.g. task watchlist:load -- data/parquet/watchlists
+    cmds:
+      - "{{.CLI}} watchlist load {{.CLI_ARGS}}"
+
+  # --- Validation and discovery --------------------------------------------
+
+  validate:jobs:
+    desc: 'Remove jobs whose URLs return 404/410 (extra args: --dry-run, --workers N)'
+    cmds:
+      - "{{.CLI}} validate jobs {{.CLI_ARGS}}"
+
+  validate:companies:
+    desc: 'Remove companies whose URLs return 404/410 (extra args: --dry-run, --workers N)'
+    cmds:
+      - "{{.CLI}} validate companies {{.CLI_ARGS}}"
+
+  remove:unwatched:
+    desc: 'Remove companies outside all watchlists (extra args: --dry-run)'
+    cmds:
+      - "{{.CLI}} remove unwatched {{.CLI_ARGS}}"
+
+  discover:
+    desc: 'Discover companies on ATS platforms (extra args: --ats ashby, --dry-run)'
+    cmds:
+      - "{{.CLI}} discover {{.CLI_ARGS}}"
+
+  # --- Maintenance ----------------------------------------------------------
+
+  clean:
+    desc: Remove local Python and tool caches
+    cmds:
+      - rm -rf .pytest_cache .ruff_cache .mypy_cache
+      - find src tests -type d -name __pycache__ -prune -exec rm -rf {} +

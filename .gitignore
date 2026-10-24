@@ -29,6 +29,9 @@ venv/
 logs
 nohup.out
 
+# Background process state (task start/stop)
+.run/
+
 # data
 data/csv/jobs.csv
 data/parquet/jobs.parquet
