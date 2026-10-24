@@ -15,9 +15,20 @@ tasks:
       - task --list
 
   setup:
-    desc: Install runtime and development dependencies
+    desc: Install dependencies, migrate the database, and load seed data
     cmds:
       - "{{.UV}} sync --extra dev"
+      - task: db:init
+      - |
+        count=$(.venv/bin/python -c "import sqlite3; print(sqlite3.connect('data/database.db').execute('SELECT COUNT(*) FROM companies').fetchone()[0])")
+        watchlists=$(.venv/bin/python -c "import sqlite3; print(sqlite3.connect('data/database.db').execute('SELECT COUNT(*) FROM watchlists').fetchone()[0])")
+        if [ "$count" -eq 0 ]; then
+          {{.CLI}} load database
+        elif [ "$watchlists" -eq 0 ]; then
+          {{.CLI}} watchlist load data/parquet/watchlists
+        else
+          echo "Database already has $count companies and $watchlists watchlist entries; skipping seed load"
+        fi
 
   update:
     desc: Upgrade locked dependencies and sync the environment
@@ -31,14 +42,48 @@ tasks:
     desc: Start the collection pipeline in the background
     cmds:
       - |
+        count=$(.venv/bin/python -c "import sqlite3; print(sqlite3.connect('data/database.db').execute('SELECT COUNT(*) FROM companies').fetchone()[0])" 2>/dev/null || echo 0)
+        if [ "$count" -eq 0 ]; then
+          echo "Database is not ready. Run 'task setup' first." >&2
+          exit 1
+        fi
+        if pgrep -f '[.]venv/bin/openats' >/dev/null 2>&1; then
+          echo "openats is already running. Run 'task dev' to follow output."
+          exit 0
+        fi
         mkdir -p .run
-        nohup setsid sh -c 'echo $$ > .run/openats.pid; exec .venv/bin/openats' >> .run/openats.log 2>&1 < /dev/null &
+        nohup setsid sh -c 'echo $$ > .run/openats.pid; exec .venv/bin/openats' > .run/openats.log 2>&1 < /dev/null &
         sleep 1
+        pid=$(cat .run/openats.pid 2>/dev/null || true)
+        if [ -z "$pid" ] || ! ps -p "$pid" -o args= 2>/dev/null | grep -q '[.]venv/bin/openats'; then
+          rm -f .run/openats.pid
+          echo "openats failed to start. Recent output:" >&2
+          tail -n 20 .run/openats.log >&2 || true
+          exit 1
+        fi
+        echo "openats started (pid $pid). Run 'task dev' to follow output."
 
   stop:
-    desc: Stop the background collection pipeline
+    desc: Stop the running pipeline, if any
     cmds:
-      - /bin/kill "$(cat .run/openats.pid)"; rm -f .run/openats.pid
+      - |
+        pid=$(cat .run/openats.pid 2>/dev/null || true)
+        if [ -n "$pid" ] && ps -p "$pid" -o args= 2>/dev/null | grep -q '[.]venv/bin/openats'; then
+          /bin/kill "$pid" 2>/dev/null || true
+        fi
+        pkill -f '[.]venv/bin/openats' 2>/dev/null || true
+        rm -f .run/openats.pid
+        echo "openats stopped"
+
+  dev:
+    desc: Follow the running pipeline's stdout output
+    cmds:
+      - |
+        if [ ! -f .run/openats.log ]; then
+          echo "No log found. Run 'task start' first." >&2
+          exit 1
+        fi
+        tail -n 200 -F .run/openats.log
 
   # --- Quality checks -------------------------------------------------------
 

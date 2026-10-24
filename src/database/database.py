@@ -43,9 +43,26 @@ CREATE TABLE IF NOT EXISTS jobs (
 )
 """
 
-CREATE_COMPANIES_TABLE = (
-    "CREATE TABLE IF NOT EXISTS companies (ats TEXT, name TEXT, slug TEXT, url TEXT)"
+CREATE_COMPANIES_TABLE = """
+CREATE TABLE IF NOT EXISTS companies (
+    ats TEXT,
+    name TEXT,
+    slug TEXT,
+    url TEXT,
+    active INTEGER DEFAULT 1,
+    last_collected_at TEXT,
+    last_jobs_count TEXT,
+    last_url_check TEXT
 )
+"""
+
+COMPANY_COLUMNS_TO_MIGRATE = (
+    ("active", "INTEGER DEFAULT 1"),
+    ("last_collected_at", "TEXT"),
+    ("last_jobs_count", "TEXT"),
+    ("last_url_check", "TEXT"),
+)
+
 CREATE_INDEX_COMPANIES_ATS = "CREATE INDEX IF NOT EXISTS idx_companies_ats ON companies(ats)"
 CREATE_INDEX_COMPANIES_SLUG = "CREATE INDEX IF NOT EXISTS idx_companies_slug ON companies(slug)"
 CREATE_INDEX_COMPANIES_NAME = "CREATE INDEX IF NOT EXISTS idx_companies_name ON companies(name)"
@@ -447,7 +464,6 @@ SELECT_NON_STANDARD_TABLES = (
     "('companies', 'jobs', 'watchlists', 'jobs_recent', 'sqlite_sequence')"
 )
 
-DROP_WATCHLISTS_TABLE = "DROP TABLE IF EXISTS watchlists"
 CREATE_WATCHLISTS_TABLE = """
 CREATE TABLE IF NOT EXISTS watchlists (
     ats TEXT NOT NULL,
@@ -470,6 +486,7 @@ SELECT_DISTINCT_SOURCES = (
 SELECT_WATCHLISTS_BY_SOURCE = "SELECT * FROM watchlists WHERE watchlist = ? ORDER BY company_name"
 PRAGMA_TABLE_INFO_JOBS = "PRAGMA table_info(jobs)"
 PRAGMA_TABLE_INFO_JOBS_RECENT = "PRAGMA table_info(jobs_recent)"
+PRAGMA_TABLE_INFO_COMPANIES = "PRAGMA table_info(companies)"
 
 JOBS_RECENT_TABLE = "jobs_recent"
 DROP_JOBS_RECENT_TABLE = "DROP TABLE IF EXISTS jobs_recent"
@@ -753,13 +770,19 @@ class Database:
     def create_table_companies(self, connection):
         try:
             connection.execute(CREATE_COMPANIES_TABLE)
+            self.migrate_companies_table(connection)
         except Exception as exc:
             logger.error(operation="create_table_companies", error=str(exc))
             raise
 
+    def migrate_companies_table(self, connection: sqlite3.Connection) -> None:
+        existing = {row[1] for row in connection.execute(PRAGMA_TABLE_INFO_COMPANIES).fetchall()}
+        for name, definition in COMPANY_COLUMNS_TO_MIGRATE:
+            if name not in existing:
+                connection.execute(f"ALTER TABLE companies ADD COLUMN {name} {definition}")
+
     def create_table_watchlists(self, connection):
         try:
-            connection.execute(DROP_WATCHLISTS_TABLE)
             connection.execute(CREATE_WATCHLISTS_TABLE)
         except Exception as exc:
             logger.error(operation="create_table_watchlists", error=str(exc))
