@@ -5,7 +5,9 @@ JazzHR publishes Google Merchant-style XML feeds at:
 
 These 5 shards contain thousands of job URLs from which company slugs
 can be extracted. This is the highest-value discovery source — 5 HTTP
-requests yield thousands of unique JazzHR company slugs.
+requests yield thousands of unique JazzHR company slugs. It is also, as
+of the source survey in ``_sources.py``, the only ATS that publishes an
+unauthenticated directory of its own tenants.
 
 URL pattern in feeds:
     https://{slug}.applytojob.com/apply/{id}/...
@@ -14,11 +16,10 @@ URL pattern in feeds:
 from __future__ import annotations
 
 import re
+from typing import ClassVar
 
-import httpx
-
-from services._models import ATSType, Company
-from services.discover._base import DiscoveryError, DiscoveryRegistry
+from services._models import ATSType
+from services.discover._base import DiscoveryRegistry
 from services.discover.sitemap import SitemapDiscovery
 
 # JazzHR feed shards
@@ -38,34 +39,7 @@ class JazzHRSitemapDiscovery(SitemapDiscovery):
     different JazzHR tenants.
     """
 
-    ATS_TYPE = ATSType.JAZZHR
-    FEED_URLS = JAZZHR_FEED_URLS
-    URL_PATTERN = JAZZHR_URL_PATTERN
-
-    async def discover(self) -> list[Company]:
-        """Discover JazzHR companies from feed shards."""
-        companies: list[Company] = []
-        seen_slugs: set[str] = set()
-
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            for feed_url in self.FEED_URLS:
-                try:
-                    response = await self._fetch_with_retry(client, feed_url)
-                    feed_companies = self._extract_companies(response.text)
-                    for company in feed_companies:
-                        if company.slug not in seen_slugs:
-                            seen_slugs.add(company.slug)
-                            companies.append(company)
-                except DiscoveryError as exc:
-                    # Log but continue with other shards
-                    import logging
-
-                    log = logging.getLogger(__name__)
-                    log.warning(
-                        "JazzHR feed failed: %s — %s",
-                        feed_url,
-                        exc,
-                    )
-                    continue
-
-        return companies
+    ats = ATSType.JAZZHR
+    SOURCE_URL = JAZZHR_FEED_URLS[0]
+    FEED_URLS: ClassVar[list[str]] = JAZZHR_FEED_URLS
+    URL_PATTERN: ClassVar[re.Pattern[str]] = JAZZHR_URL_PATTERN

@@ -32,7 +32,9 @@ def main(concurrent: bool = False) -> None:
 
         total_companies = sum(len(v) for v in companies_by_ats.values())
         logger.info(
-            operation="read_companies", total=total_companies, unknown_ats_skipped=unknown_ats or None
+            operation="read_companies",
+            total=total_companies,
+            unknown_ats_skipped=unknown_ats or None,
         )
 
         outcome, written, duration = _run_collect_pipeline(companies_by_ats, concurrent=concurrent)

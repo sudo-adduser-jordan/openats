@@ -120,6 +120,36 @@ sessions are currently 403'd).
 <!-- ats-status:end -->
 
 
+## Discover
+
+Collectors need a company before they can fetch its jobs. Discovery finds
+companies that are not yet in the `companies` table and inserts them:
+
+```bash
+openats discover                 # run every registered discoverer, write new rows
+openats discover run --ats jazzhr
+openats discover --dry-run       # report new companies without writing
+openats discover verify          # probe the known sources, live / dead / blocked
+openats discover verify -v       # include each source's URL and survey notes
+openats discover verify --offline
+```
+
+**Only `jazzhr` has a working discoverer.** Finding a tenant slug for a
+multi-tenant ATS requires some public index of that ATS's tenants, and after
+surveying vendor customer pages, marketing sitemaps, web search, certificate
+transparency logs, passive DNS, and job aggregator APIs, exactly one such
+index was found: JazzHR's five unauthenticated XML feed shards. Everything
+else is dead, blocked, or needs an API key.
+
+`openats discover verify` prints that survey, and
+[`src/services/discover/_sources.py`](src/services/discover/_sources.py)
+records *why* each source was rejected — read it before adding a discoverer,
+so the survey is not re-derived from scratch.
+
+To add a discoverer, see `src/services/discover/_base.py` and register the
+module in `src/services/discover/__init__.py`; a module that is not imported
+there never reaches `DiscoveryRegistry` and is invisible to `discover`.
+
 ## CLI
 
 ```bash

@@ -464,7 +464,8 @@ class WorkdayCollector(BaseCollector):
                 f"Workday returned {response.status_code} for {self.company_slug} (offset={offset})"
             )
         raise CollectorError(
-            f"Workday gave up after {MAX_RETRIES} retries at offset={offset}: {last_exc or f'HTTP {last_status}' or 'unknown'}"
+            f"Workday gave up after {MAX_RETRIES} retries at offset={offset}: "
+            f"{last_exc or (f'HTTP {last_status}' if last_status else 'unknown')}"
         )
 
     def _parse_job(self, item: dict[str, Any], base_url: str, company: str) -> Job:

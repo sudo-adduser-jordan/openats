@@ -331,7 +331,7 @@ def _validate_companies(args: argparse.Namespace):
 
 def _discover(args: argparse.Namespace):
     from services._models import ATSType
-    from services.discover import discover_companies
+    from services.discover import DiscoveryError, discover_companies
 
     ats_type = None
     if args.ats:
@@ -343,7 +343,12 @@ def _discover(args: argparse.Namespace):
             return
 
     write = not args.dry_run
-    new_companies = discover_companies(ats=ats_type, write=write)
+    try:
+        new_companies = discover_companies(ats=ats_type, write=write)
+    except DiscoveryError as exc:
+        # No discoverer registered for --ats, or a mistyped ATS type.
+        print(exc)
+        return
 
     if not new_companies:
         print("No new companies discovered")
@@ -355,6 +360,20 @@ def _discover(args: argparse.Namespace):
         print(f"  {company.ats.value}: {company.slug} ({company.name})")
     if len(new_companies) > 50:
         print(f"  ... and {len(new_companies) - 50} more")
+
+
+def _discover_verify(args: argparse.Namespace) -> None:
+    from services.discover.verify import format_report, probe_sources, unreachable_required
+
+    results = probe_sources(offline=args.offline)
+    print(format_report(results, verbose=args.verbose))
+
+    unreachable = unreachable_required(results)
+    if unreachable:
+        print()
+        print("Recorded as usable but unreachable:")
+        for result in unreachable:
+            print(f"  {result.source.label}: {result.error or 'no response'}")
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -504,11 +523,40 @@ def _build_parser() -> argparse.ArgumentParser:
     database_cmd.set_defaults(func=_database)
 
     discover = sub.add_parser("discover", help="Discover companies on ATS platforms")
+    # Options are declared both here and on the `run` subcommand so that the
+    # original flat form (`openats discover --ats x`) keeps working alongside
+    # the new nested form (`openats discover run --ats x`).
     discover.add_argument("--ats", help="ATS type to discover (default: all registered)")
     discover.add_argument(
         "--dry-run", action="store_true", help="Print findings without modifying DB"
     )
     discover.set_defaults(func=_discover)
+
+    discover_sub = discover.add_subparsers(dest="discover_command")
+
+    discover_run = discover_sub.add_parser("run", help="Run discoverers (default)")
+    discover_run.add_argument("--ats", help="ATS type to discover (default: all registered)")
+    discover_run.add_argument(
+        "--dry-run", action="store_true", help="Print findings without modifying DB"
+    )
+    discover_run.set_defaults(func=_discover)
+
+    discover_verify = discover_sub.add_parser(
+        "verify",
+        help="Probe the known discovery sources and report live/dead/blocked status",
+    )
+    discover_verify.add_argument(
+        "--offline",
+        action="store_true",
+        help="Print the recorded survey without making any requests",
+    )
+    discover_verify.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Also print each source's URL and survey notes",
+    )
+    discover_verify.set_defaults(func=_discover_verify)
 
     load = sub.add_parser("load", help="Load data into the database")
     load_sub = load.add_subparsers(dest="load_command")

@@ -161,7 +161,7 @@ class BaseCollector(ABC):
 
         raise CollectorError(
             f"{self.company_slug} exhausted retries: "
-            f"{last_exc or f'HTTP {last_status}' or 'unknown'}"
+            f"{last_exc or (f'HTTP {last_status}' if last_status else 'unknown')}"
         )
 
     # ------------------------------------------------------------------

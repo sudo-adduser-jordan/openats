@@ -51,9 +51,15 @@ class BaseDiscovery(ABC):
 
     * :meth:`_fetch_with_retry` — HTTP GET with exponential backoff,
       ``Retry-After`` header support, and configurable retryable status codes.
+
+    ``ats`` and ``SOURCE_URL`` are the two contract attributes: ``ats`` is the
+    registry key and is read by the orchestrator's logging, so a subclass that
+    sets anything other than ``ats`` will fail at run time.
     """
 
     ats: ClassVar[ATSType]
+    #: Human-readable endpoint this discoverer reads, for ``discover verify``.
+    SOURCE_URL: ClassVar[str | None] = None
     MAX_RETRIES: ClassVar[int] = 3
     RETRY_BASE_DELAY: ClassVar[float] = 1.5
 
@@ -64,7 +70,7 @@ class BaseDiscovery(ABC):
     async def discover(self) -> list[Company]:
         """Discover companies on this ATS and return them."""
 
-    async def _fetch_with_retry(
+    async def _fetch_with_retry(  # pylint: disable=too-many-arguments
         self,
         client: httpx.AsyncClient,
         url: str,
@@ -89,35 +95,48 @@ class BaseDiscovery(ABC):
                 last_exc = exc
                 if attempt == max_retries:
                     raise DiscoveryError(f"Request failed for {self.ats.value}: {exc}") from exc
-                await asyncio.sleep(retry_base_delay * attempt)
+                await asyncio.sleep(retry_base_delay * (2**attempt))
                 continue
 
             if response.status_code == 200:
                 return response
 
-            if response.status_code in retryable_statuses or (500 <= response.status_code < 600):
+            if response.status_code in retryable_statuses or 500 <= response.status_code < 600:
                 last_status = response.status_code
                 if attempt == max_retries:
                     raise DiscoveryError(
                         f"{self.ats.value} returned {response.status_code} "
                         f"after {max_retries} retries"
                     )
-                retry_after = response.headers.get("Retry-After")
-                if retry_after:
-                    try:
-                        delay = float(retry_after)
-                    except ValueError:
-                        delay = retry_base_delay * (2**attempt)
-                else:
-                    delay = retry_base_delay * (2**attempt)
+                delay = self._retry_delay(response, retry_base_delay, attempt)
                 await asyncio.sleep(delay)
                 continue
 
             raise DiscoveryError(f"{self.ats.value} returned {response.status_code}")
 
-        raise DiscoveryError(
-            f"{self.ats.value} exhausted retries: {last_exc or f'HTTP {last_status}' or 'unknown'}"
-        )
+        if last_exc is not None:
+            detail: object = last_exc
+        elif last_status is not None:
+            detail = f"HTTP {last_status}"
+        else:
+            detail = "unknown"
+        raise DiscoveryError(f"{self.ats.value} exhausted retries: {detail}")
+
+    @staticmethod
+    def _retry_delay(response: httpx.Response, base_delay: float, attempt: int) -> float:
+        """Seconds to wait before the next attempt.
+
+        ``Retry-After`` wins when the origin sends a parseable number of
+        seconds; anything else (including HTTP-date form) falls back to
+        exponential backoff.
+        """
+        retry_after = response.headers.get("Retry-After")
+        if retry_after:
+            try:
+                return float(retry_after)
+            except ValueError:
+                pass
+        return base_delay * (2.0**attempt)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(ats={self.ats.value!r})"
@@ -135,6 +154,12 @@ class DiscoveryRegistry:
     @classmethod
     def register(cls, ats: ATSType) -> Callable[[type[BaseDiscovery]], type[BaseDiscovery]]:
         def decorator(discoverer_cls: type[BaseDiscovery]) -> type[BaseDiscovery]:
+            existing = cls._discoverers.get(ats)
+            if existing is not None and existing is not discoverer_cls:
+                raise DiscoveryError(
+                    f"Duplicate discoverer for {ats.value!r}: {existing.__name__} is already "
+                    f"registered, refusing to overwrite it with {discoverer_cls.__name__}"
+                )
             cls._discoverers[ats] = discoverer_cls
             return discoverer_cls
 
@@ -142,13 +167,22 @@ class DiscoveryRegistry:
 
     @classmethod
     def get(cls, ats: ATSType | str) -> type[BaseDiscovery]:
-        ats_enum = ATSType(ats) if isinstance(ats, str) else ats
+        if isinstance(ats, str):
+            try:
+                ats_enum = ATSType(ats)
+            except ValueError as exc:
+                raise DiscoveryError(
+                    f"Unknown ATS type {ats!r}. Valid types: "
+                    f"{', '.join(sorted(a.value for a in ATSType))}"
+                ) from exc
+        else:
+            ats_enum = ats
         try:
             return cls._discoverers[ats_enum]
         except KeyError as exc:
             raise DiscoveryError(
                 f"No discoverer registered for {ats_enum.value!r}. "
-                f"Available: {sorted(s.value for s in cls._discoverers)}"
+                f"Available: {', '.join(sorted(s.value for s in cls._discoverers)) or 'none'}"
             ) from exc
 
     @classmethod

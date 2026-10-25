@@ -51,6 +51,19 @@ Outputs are under `data/parquet/`.
 - `openats validate jobs [--workers N] [--dry-run]` — Remove jobs whose URLs return 404/410; dry-run reports only.
 - `openats validate companies [--workers N] [--dry-run]` — Remove companies whose URLs return 404/410; dry-run reports only.
 
+### Discover
+
+- `openats discover` / `openats discover run [--ats <ats>] [--dry-run]` — Discover companies and insert new rows; `--dry-run` reports only.
+- `openats discover verify [--offline] [-v]` — Probe the known discovery sources and report live / auth / dead / blocked status.
+
+`--ats` also works in the original flat form, `openats discover --ats jazzhr`.
+An `--ats` value with no registered discoverer prints the available ones and
+exits rather than erroring.
+
+Only `jazzhr` has a discoverer. `src/services/discover/_sources.py` records the
+full source survey, including every endpoint that was probed and rejected —
+read it before adding one.
+
 ## File structure and locations
 
 - `src/` — Python application source.
@@ -59,7 +72,7 @@ Outputs are under `data/parquet/`.
 - `src/config.py` — Database path and concurrency settings.
 - `src/database/` — Database schema, persistence, and Parquet import/export.
 - `src/services/collect/` — ATS-specific job collectors.
-- `src/services/discover/` — Company discovery services.
+- `src/services/discover/` — Company discovery services: `_base.py` (base class and registry), `discover.py` (orchestrator), `sitemap.py` (XML feed parsing), `_sources.py` (source survey), `verify.py` (probe report).
 - `src/services/_models.py` — Shared job models; `src/utils/` holds normalization and other helpers.
 - `tests/` — Pytest suite and fixtures.
 - `data/database.db` — Local SQLite database, created at runtime; path configured in `src/config.py`.
@@ -70,9 +83,10 @@ Outputs are under `data/parquet/`.
 
 ## Documentation links
 
-- [Installation](README.md#install), [job row fields](README.md#row), [collectors](README.md#collectors), and [CLI overview](README.md#cli).
+- [Installation](README.md#install), [job row fields](README.md#row), [collectors](README.md#collectors), [discovery](README.md#discover), and [CLI overview](README.md#cli).
 - [CLI source](src/cli.py) — Authoritative commands and options.
 - [Database source](src/database/database.py) and [job models](src/services/_models.py) — Schema and persistence reference.
+- [Discovery base](src/services/discover/_base.py) and [source survey](src/services/discover/_sources.py) — Discoverer contract and which sources are usable.
 - [Pipeline entry point](src/app.py), [producer](src/producer.py), and [worker](src/workers.py) — Collection and ingestion implementation.
 - [Project configuration](pyproject.toml) — Dependencies and development tooling.
 
