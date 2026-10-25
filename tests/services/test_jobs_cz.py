@@ -461,10 +461,10 @@ def test_live_e2e_fetches_real_jobs_cz_page() -> None:
     """Opt-in smoke test against the real jobs.cz listing page.
 
     Normal CI keeps this skipped because it depends on the public site.
-    Run with ``JOBHIVE_LIVE_E2E=1`` when reviewing the collector PR.
+    Run with ``OPENATS_LIVE_E2E=1`` when reviewing the collector PR.
     """
-    if os.environ.get("JOBHIVE_LIVE_E2E") != "1":
-        pytest.skip("set JOBHIVE_LIVE_E2E=1 to hit the real jobs.cz site")
+    if os.environ.get("OPENATS_LIVE_E2E") != "1":
+        pytest.skip("set OPENATS_LIVE_E2E=1 to hit the real jobs.cz site")
 
     jobs = JobsCzCollector(
         "jobs_cz",

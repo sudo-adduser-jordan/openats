@@ -12,6 +12,13 @@
 git clone; uv sync
 ```
 
+Configuration is optional. To collect from USAJOBS, Wellfound, or the
+Browserbase-backed collectors, copy the commented template and fill in keys:
+
+```bash
+cp example.env .env
+```
+
 # Row
 
 ```
@@ -42,7 +49,7 @@ raw
 **Hybrid jobboards**: `WelcomeToTheJungle`.
 
 **Browser-required** (run via [Browserbase](https://browserbase.com)
-remote sessions): `Meta`, `Tesla`. Set `JOBHIVE_USE_BROWSERBASE=1`
+remote sessions): `Meta`, `Tesla`. Set `OPENATS_USE_BROWSERBASE=1`
 together with `BROWSERBASE_API_KEY` and `BROWSERBASE_PROJECT_ID` to
 enable; without those env vars the collectors log a warning and skip.
 Tesla also needs a Browserbase project that bypasses Akamai (default

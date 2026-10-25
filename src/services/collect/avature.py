@@ -247,16 +247,16 @@ class AvatureCollector(BaseCollector):
           this tenant (the rest of the pipeline keeps running).
         * Playwright unavailable → same as above.
 
-        Set ``JOBHIVE_DISABLE_BROWSERBASE=1`` to force the fallback off
+        Set ``OPENATS_DISABLE_BROWSERBASE=1`` to force the fallback off
         even when credentials exist (useful in CI / local dev).
         """
         import logging
 
         log = logging.getLogger(__name__)
 
-        if os.getenv("JOBHIVE_DISABLE_BROWSERBASE"):
+        if os.getenv("OPENATS_DISABLE_BROWSERBASE"):
             log.warning(
-                "Avature %s: 406-blocked and JOBHIVE_DISABLE_BROWSERBASE is set; skipping tenant.",
+                "Avature %s: 406-blocked and OPENATS_DISABLE_BROWSERBASE is set; skipping tenant.",
                 base,
             )
             return []
