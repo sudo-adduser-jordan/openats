@@ -13,7 +13,7 @@ from utils.logger import logger
 dotenv.load_dotenv()
 
 
-def main() -> None:
+def main(concurrent: bool = False) -> None:
     log_ats_status()
     nohup_out_removed = os.path.exists("nohup.out")
     logs_removed = os.path.isdir("logs")
@@ -35,7 +35,7 @@ def main() -> None:
             operation="read_companies", total=total_companies, unknown_ats_skipped=unknown_ats or None
         )
 
-        outcome, written, duration = _run_collect_pipeline(companies_by_ats)
+        outcome, written, duration = _run_collect_pipeline(companies_by_ats, concurrent=concurrent)
         logger.info(
             operation="collect_pipeline",
             outcome=outcome,

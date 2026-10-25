@@ -69,6 +69,7 @@ def _get_all_companies() -> dict[ATSType, list[dict[str, str]]]:
 
 def _run_collect_pipeline(
     companies_by_ats: dict[ATSType, list[dict[str, str]]],
+    concurrent: bool = False,
 ) -> tuple[str, int, int]:
     start = time.monotonic()
     ingest_queue: Queue[Any] = Queue(maxsize=100)
@@ -78,7 +79,7 @@ def _run_collect_pipeline(
     worker = Worker(ingest_queue)
     worker.start()
 
-    run_producers(ingest_queue, companies_by_ats, shutdown_event)
+    run_producers(ingest_queue, companies_by_ats, shutdown_event, concurrent=concurrent)
 
     while True:
         try:
@@ -141,7 +142,7 @@ def _collect_ats(args: argparse.Namespace):
     ats_list = ", ".join(ats.value for ats in companies_by_ats)
     print(f"Fetching jobs for {total} companies on {ats_list}")
 
-    outcome, written, duration = _run_collect_pipeline(companies_by_ats)
+    outcome, written, duration = _run_collect_pipeline(companies_by_ats, concurrent=args.concurrent)
     print(f"Fetch {outcome} — {written} jobs persisted in {duration}ms")
 
 
@@ -175,7 +176,7 @@ def _collect_company(args: argparse.Namespace):
     ats_list = ", ".join(ats.value for ats in companies_by_ats)
     print(f"Fetching jobs for {total} companies on {ats_list}")
 
-    outcome, written, duration = _run_collect_pipeline(companies_by_ats)
+    outcome, written, duration = _run_collect_pipeline(companies_by_ats, concurrent=args.concurrent)
     print(f"Fetch {outcome} — {written} jobs persisted in {duration}ms")
 
 
@@ -208,7 +209,7 @@ def _collect_all(args: argparse.Namespace):
     if unknown_ats:
         print(f"Skipping {len(unknown_ats)} unknown ATS types: {', '.join(unknown_ats)}")
 
-    outcome, written, duration = _run_collect_pipeline(all_companies)
+    outcome, written, duration = _run_collect_pipeline(all_companies, concurrent=args.concurrent)
     print(f"Fetch {outcome} — {written} jobs persisted in {duration}ms")
 
 
@@ -280,7 +281,7 @@ def _collect_watchlist(args: argparse.Namespace):
     if unknown_ats:
         print(f"Skipping {len(unknown_ats)} unknown ATS types: {', '.join(unknown_ats)}")
 
-    outcome, written, duration = _run_collect_pipeline(companies_by_ats)
+    outcome, written, duration = _run_collect_pipeline(companies_by_ats, concurrent=args.concurrent)
     print(f"Fetch {outcome} — {written} jobs persisted in {duration}ms")
 
 
@@ -358,6 +359,11 @@ def _discover(args: argparse.Namespace):
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="openats", description="openats CLI")
+    parser.add_argument(
+        "--concurrent",
+        action="store_true",
+        help="Fetch companies concurrently (default: one at a time, in one process)",
+    )
     sub = parser.add_subparsers(dest="command")
 
     dump = sub.add_parser("dump", help="Dump data from the database")
@@ -393,9 +399,21 @@ def _build_parser() -> argparse.ArgumentParser:
     collect = sub.add_parser("collect", help="Collect jobs from companies")
     collect_sub = collect.add_subparsers(dest="collect_command")
     collect.add_argument("--skip", nargs="+", default=[], help="ATS types to skip")
+    collect.add_argument(
+        "--concurrent",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Fetch companies concurrently (default: one at a time, in one process)",
+    )
 
     collect_company = collect_sub.add_parser("company", help="Collect jobs for specific companies")
     collect_company.add_argument("companies", nargs="+", help="Company name(s) or slug(s)")
+    collect_company.add_argument(
+        "--concurrent",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Fetch companies concurrently (default: one at a time, in one process)",
+    )
     collect_company.set_defaults(func=_collect_company)
 
     collect_ats = collect_sub.add_parser(
@@ -403,6 +421,12 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     collect_ats.add_argument("ats", nargs="+", help="ATS type(s)")
     collect_ats.add_argument("--skip", nargs="+", default=[], help="Company slugs to skip")
+    collect_ats.add_argument(
+        "--concurrent",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Fetch companies concurrently (default: one at a time, in one process)",
+    )
     collect_ats.set_defaults(func=_collect_ats)
 
     collect_watchlist = collect_sub.add_parser(
@@ -412,6 +436,12 @@ def _build_parser() -> argparse.ArgumentParser:
         "watchlist", nargs="?", help="Watchlist source name (default: all)"
     )
     collect_watchlist.add_argument("--skip-ats", nargs="+", default=[], help="ATS types to skip")
+    collect_watchlist.add_argument(
+        "--concurrent",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Fetch companies concurrently (default: one at a time, in one process)",
+    )
     collect_watchlist.set_defaults(func=_collect_watchlist)
 
     collect.set_defaults(func=_collect_all)
@@ -511,7 +541,7 @@ def main():
     if args.command is None:
         from app import main as pipeline_main
 
-        pipeline_main()
+        pipeline_main(args.concurrent)
     elif args.command == "dump" and args.dump_command is None:
         parser.parse_args(["dump", "--help"])
     elif (
@@ -524,7 +554,7 @@ def main():
         if not args.skip:
             from app import main as pipeline_main
 
-            pipeline_main()
+            pipeline_main(args.concurrent)
         else:
             _collect_all(args)
     elif args.command == "watchlist" and args.watchlist_command is None:

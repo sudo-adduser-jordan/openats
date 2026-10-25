@@ -19,11 +19,15 @@ Square brackets indicate optional arguments; angle brackets indicate required va
 
 ### Collect
 
-- `openats` — Run the full collection pipeline.
-- `openats collect [--skip <ats> ...]` — Collect all companies, optionally skipping ATS types.
-- `openats collect company <company> ...` — Collect specified company names or slugs.
-- `openats collect ats <ats> ... [--skip <slug> ...]` — Collect specified ATS types, optionally skipping company slugs.
-- `openats collect watchlist [watchlist] [--skip-ats <ats> ...]` — Collect one watchlist or all watchlists.
+- `openats [--concurrent]` — Run the full collection pipeline.
+- `openats collect [--skip <ats> ...] [--concurrent]` — Collect all companies, optionally skipping ATS types.
+- `openats collect company <company> ... [--concurrent]` — Collect specified company names or slugs.
+- `openats collect ats <ats> ... [--skip <slug> ...] [--concurrent]` — Collect specified ATS types, optionally skipping company slugs.
+- `openats collect watchlist [watchlist] [--skip-ats <ats> ...] [--concurrent]` — Collect one watchlist or all watchlists.
+
+Fetches run one company at a time by default (one process, one fetch thread).
+`--concurrent` may appear before or after the subcommand and re-enables the
+8-thread fetch pool; ingestion buffering is unchanged in both modes.
 
 ### Dump
 

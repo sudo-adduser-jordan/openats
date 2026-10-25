@@ -152,27 +152,27 @@ tasks:
   # --- Collection -----------------------------------------------------------
 
   collect:
-    desc: Run the continuous collection pipeline
+    desc: 'Run the continuous collection pipeline (extra args: --concurrent)'
     cmds:
       - "{{.CLI}}"
 
   collect:all:
-    desc: 'Collect all companies (extra args: task collect:all -- --skip meta)'
+    desc: 'Collect all companies (extra args: task collect:all -- --skip meta --concurrent)'
     cmds:
       - "{{.CLI}} collect {{.CLI_ARGS}}"
 
   collect:ats:
-    desc: Collect ATS types, e.g. task collect:ats -- ashby lever
+    desc: 'Collect ATS types, e.g. task collect:ats -- ashby lever --concurrent'
     cmds:
       - "{{.CLI}} collect ats {{.CLI_ARGS}}"
 
   collect:company:
-    desc: Collect companies by name or slug, e.g. task collect:company -- openai
+    desc: 'Collect companies by name or slug, e.g. task collect:company -- openai --concurrent'
     cmds:
       - "{{.CLI}} collect company {{.CLI_ARGS}}"
 
   collect:watchlist:
-    desc: Collect one or all watchlists, e.g. task collect:watchlist -- ai
+    desc: 'Collect one or all watchlists, e.g. task collect:watchlist -- ai --concurrent'
     cmds:
       - "{{.CLI}} collect watchlist {{.CLI_ARGS}}"
 

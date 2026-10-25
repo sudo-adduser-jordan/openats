@@ -133,3 +133,12 @@ pytest
 ruff check src/
 ruff format src/ --check
 ```
+
+Collection fetches one company at a time by default — a single process with a
+single fetch thread. Pass `--concurrent` (before or after the subcommand) to
+fan fetches out over a thread pool instead:
+
+```bash
+openats --concurrent
+openats collect watchlist ai --concurrent
+```
